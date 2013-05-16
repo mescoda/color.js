@@ -152,13 +152,28 @@
             this.hsvArray = hsvArray;
             return hsvArray;
         },
-        convertToHsl: function() {
+        convertToHsl: function(percentage) {
             if(this.rgbArray.length === 0) {
                 this.convertToRgb();
             }
-            var hslArray = [];
+            percentage = typeof percentage === 'undefined' ? true : percentage;
+            var hslArray = [],
+                singleHsl,
+                singleHslArray = [];
             for(var i = 0, iLen = this.rgbArray.length; i < iLen; i++) {
-                hslArray.push(singleRgbToHsl(this.rgbArray[i]));
+                if(percentage) {
+                    singleHsl = singleRgbToHsl(this.rgbArray[i]);
+                    for(var j = 0, jLen = singleHsl.length; j < jLen; j++) {
+                        if(j > 0) {
+                            singleHslArray.push( Math.round(singleHsl[j]*100) + '%' );
+                        } else {
+                            singleHslArray.push(singleHsl[j]);
+                        }
+                    }
+                    hslArray.push(singleHslArray);
+                } else {
+                    hslArray.push(singleRgbToHsl(this.rgbArray[i]));
+                }
             }
             this.hslArray = hslArray;
             return hslArray;
