@@ -41,6 +41,13 @@
         rgb.push(parseInt(hex.slice(4, 6), 16));
         return rgb;
     }
+    function singleRgbToHex(rgb) {
+        var hex = '';
+        for(var i = 0, iLen = rgb.length; i < iLen; i++) {
+            hex += (rgb[i] < 16 ? '0' : '') + rgb[i].toString(16);
+        }
+        return hex.toUpperCase();
+    }
     function singleRgbToHsv(rgb) {
         var r = rgb[0] / 255,
             g = rgb[1] / 255,
@@ -68,6 +75,52 @@
         }
         v = max;
         return [h, s, v];
+    }
+    function singleHsvToRgb(hsv) {
+        var r,
+            g,
+            b,
+            h = hsv[0],
+            s = hsv[1],
+            v = hsv[2],
+            i = Math.floor(h / 60),
+            f = (h / 60) - i,
+            p = v * (1 -s),
+            q = v * (1- f * s),
+            t = v * (1 - (1 - f) * s);
+        switch(i % 6) {
+            case 0:
+                r = v;
+                g = t;
+                b = p;
+                break;
+            case 1:
+                r = q;
+                g = v;
+                b = p;
+                break;
+            case 2:
+                r = p;
+                g = v;
+                b = t;
+                break;
+            case 3:
+                r = p;
+                g = q;
+                b = v;
+                break;
+            case 4:
+                r = t;
+                g = p;
+                b = v;
+                break;
+            case 5:
+                r = v;
+                g = p;
+                b = q;
+                break;
+        }
+        return [r * 255, g * 255, b * 255];
     }
     function singleRgbToHsl(rgb) {
         var r = rgb[0] / 255,
@@ -101,6 +154,32 @@
         }
         return [h, s, l];
     }
+    function singleHslToRgb(hsl) {
+        var r,
+            g,
+            b,
+            h = hsl[0]/360,
+            s = hsl[1],
+            l = hsl[2],
+            q = l < 0.5 ? l * (1 + s) : l + s - l * s,
+            p = 2 * l - q;
+        function hue2rgb(p, q, t) {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        }
+        if(s = 0) {
+            r = g = b = l;
+        } else {
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
+        }
+        return [r * 255, g * 255, b * 255];
+    }
     function singleRgbToCmyk(rgb) {
         var r = rgb[0] / 255,
             g = rgb[1] / 255,
@@ -122,7 +201,16 @@
         }
         return [c, m, y, k];
     }
-    
+    function singleCmykToRgb(cmyk) {
+        var c = cmyk[0],
+            m = cmyk[1],
+            y = cmyk[2],
+            k = cmyk[3],
+            c1 = c * (1 - k) + k,
+            m1 = m * (1 - k) + k,
+            y1 = y * (1 - k) + k;
+        return [(1 - c1) * 255, (1 - m1) * 255, (1 - y1) * 255];
+    }
     function HexArray(hexArray) {
         // 6位 大写 不含# 
         this.hexArray = makeHexArray(hexArray);
