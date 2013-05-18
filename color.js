@@ -36,22 +36,35 @@
     }
     function singleHexToRgb(hex) {
         var rgb = [];
-        rgb.push(parseInt(hex.slice(0, 2), 16));
-        rgb.push(parseInt(hex.slice(2, 4), 16));
-        rgb.push(parseInt(hex.slice(4, 6), 16));
+        if(hex.length === 6) {
+            rgb.push(parseInt(hex.slice(0, 2), 16));
+            rgb.push(parseInt(hex.slice(2, 4), 16));
+            rgb.push(parseInt(hex.slice(4, 6), 16));    
+        } else if(hex.length === 3) {
+            rgb.push(parseInt(hex.slice(0, 1) + hex.slice(0, 1), 16));
+            rgb.push(parseInt(hex.slice(1, 2) + hex.slice(1, 2), 16));
+            rgb.push(parseInt(hex.slice(2, 3) + hex.slice(2, 3), 16));
+        }
         return rgb;
     }
     function singleRgbToHex(rgb) {
         var hex = '';
-        for(var i = 0, iLen = rgb.length; i < iLen; i++) {
+        /*for(var i = 0, iLen = rgb.length; i < iLen; i++) {
             hex += (rgb[i] < 16 ? '0' : '') + rgb[i].toString(16);
-        }
+        }*/
+        var hexr = Math.max(Math.min(parseInt(rgb[0], 10), 255), 0),
+            hexg = Math.max(Math.min(parseInt(rgb[1], 10), 255), 0),
+            hexb = Math.max(Math.min(parseInt(rgb[2], 10), 255), 0);
+        hexr = hexr > 15 ? hexr.toString(16) : '0' + hexr.toString(16);
+        hexg = hexg > 15 ? hexg.toString(16) : '0' + hexg.toString(16);
+        hexb = hexb > 15 ? hexb.toString(16) : '0' + hexb.toString(16);
+        hex =  hexr + hexg + hexb;
         return hex.toUpperCase();
     }
     function singleRgbToHsv(rgb) {
-        var r = rgb[0] / 255,
-            g = rgb[1] / 255,
-            b = rgb[2] / 255,
+        var r = Math.max(Math.min(parseInt(rgb[0], 10), 255), 0) / 255,
+            g = Math.max(Math.min(parseInt(rgb[1], 10), 255), 0) / 255,
+            b = Math.max(Math.min(parseInt(rgb[2], 10), 255), 0) / 255,
             min = Math.min(r, g, b),
             max = Math.max(r, g, b),
             h,
@@ -75,6 +88,7 @@
         }
         v = max;
         return [h, s, v];
+        // [213.1578947368421, 0.1557377049180328, 0.9568627450980393]
     }
     function singleHsvToRgb(hsv) {
         var r,
@@ -122,15 +136,16 @@
         }
         return [r * 255, g * 255, b * 255];
     }
-    function singleRgbToHsl(rgb) {
-        var r = rgb[0] / 255,
-            g = rgb[1] / 255,
-            b = rgb[2] / 255,
+    function singleRgbToHsl(rgb, round) {
+        var r = Math.max(Math.min(parseInt(rgb[0], 10), 255), 0) / 255,
+            g = Math.max(Math.min(parseInt(rgb[1], 10), 255), 0) / 255,
+            b = Math.max(Math.min(parseInt(rgb[2], 10), 255), 0) / 255,
             min = Math.min(r, g, b),
             max = Math.max(r, g, b),
             h,
             s,
-            l;
+            l,
+            round = typeof round === 'undefined' ? false : round;
         if(max === min) {
             h = 0;
         } else if(max === r && g >= b) {
@@ -152,15 +167,20 @@
         } else {
             s = (max - min) / (2 - max - min);
         }
-        return [h, s, l];
+        if(round) {
+            return [Math.round(h), Math.round(s * 100), Math.round(l * 100)];
+        } else {
+            return [h, s * 100, l * 100];
+            // [213.1578947368421, 63.333333333333385, 88.23529411764706]
+        }
     }
     function singleHslToRgb(hsl) {
         var r,
             g,
             b,
-            h = hsl[0]/360,
-            s = hsl[1],
-            l = hsl[2],
+            h = Math.max(Math.min(parseInt(hsl[0], 10), 360), 0) / 360,
+            s = Math.max(Math.min(parseInt(hsl[1], 10), 100), 0) / 100,
+            l = Math.max(Math.min(parseInt(hsl[2], 10), 100), 0) / 100,
             q = l < 0.5 ? l * (1 + s) : l + s - l * s,
             p = 2 * l - q;
         function hue2rgb(p, q, t) {
@@ -181,9 +201,9 @@
         return [r * 255, g * 255, b * 255];
     }
     function singleRgbToCmyk(rgb) {
-        var r = rgb[0] / 255,
-            g = rgb[1] / 255,
-            b = rgb[2] / 255,
+        var r = Math.max(Math.min(parseInt(rgb[0], 10), 255), 0) / 255,
+            g = Math.max(Math.min(parseInt(rgb[1], 10), 255), 0) / 255,
+            b = Math.max(Math.min(parseInt(rgb[2], 10), 255), 0) / 255,
             c,
             m,
             t,
