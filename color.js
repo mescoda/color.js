@@ -231,6 +231,39 @@
             y1 = y * (1 - k) + k;
         return [(1 - c1) * 255, (1 - m1) * 255, (1 - y1) * 255];
     }
+    function singleRgbToYuv(rgb) {
+        var r = Math.max(Math.min(parseInt(rgb[0], 10), 255), 0),
+            g = Math.max(Math.min(parseInt(rgb[1], 10), 255), 0),
+            b = Math.max(Math.min(parseInt(rgb[2], 10), 255), 0),
+            y,
+            u,
+            v;
+        y = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+        // u = Math.round((((b - y) * 0.493) + 111) / 222 * 255);
+        // v = Math.round((((r - y) * 0.877) + 155) / 312 * 255);
+        u = 0.436 * (b - y) / (1 - 0.114) + 128;
+        v = 0.615 * (r - y) / (1 - 0.299) + 128
+        return [y, u, v];
+    }
+    function singleYuvToRgb(yuv) {
+        /*var y = parseInt(yuv[0], 10),
+            u = parseInt(yuv[1], 10) / 255 * 222 - 111,
+            v = parseInt(yuv[2], 10) / 255 * 312 - 155,
+            r, g, b;
+        r = Math.round(y + v / 0.877);
+        g = Math.round(y - 0.39466 * u - 0.5806 * v);
+        b = Math.round(y + u / 0.493);*/
+        var y = yuv[0],
+            u = yuv[1],
+            v = yuv[2],
+            r,
+            g,
+            b;
+        r = y + 1.13982 * (v - 128);
+        g = y - 0.39465 * (u - 128) - 0.58060 * (v - 128);
+        b = y + 2.03211 * (u - 128);
+        return [r, g, b];
+    }
     function HexArray(hexArray) {
         // 6位 大写 不含# 
         this.hexArray = makeHexArray(hexArray);
