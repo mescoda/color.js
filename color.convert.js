@@ -167,13 +167,21 @@ for(var i in w3cColors) {
 
 var colorRegex = {
     hex: /^#?([\da-f]{3}){1,2}$/i,
-    rgb: /^$/,
+    rgb: /^(2[0-4]\d|25[0-5]|[01]?\d?\d)([,\s]|,\s)(2[0-4]\d|25[0-5]|[01]?\d?\d)\2(2[0-4]\d|25[0-5]|[01]?\d?\d)$/,
     rgba: /^$/,
     hsl: /^$/,
     hsla: /^$/
 };
 
+function isArray(array) {
+    if(Object.prototype.toString.call(array) === '[object Array]') {
+        return true;
+    } else {
+        return false;
+    }
+}
 
+// parse functions
 function parseHex(hexValue) {
     var hex = {},
         sixWithoutPoundSign;
@@ -208,8 +216,44 @@ function parseHex(hexValue) {
 }
 
 function parseRgb(rgbValue) {
-    var rgb = {};
+    var rgb = {},
+        rgbArray,
+        rgbString;
+    if(typeof rgbValue === 'string' && colorRegex.rgb.test(rgbValue)) {
+        rgbArray = rgbValue.split(','); // regex get split
+        rgbString = rgbArray.join();
+        rgb.array = rgbArray;
+        rgb.string = rgbString;
+    } else if(isArray(rgbValue)) {
+        rgbString = rgbValue.join();
+        var tempRgb = parseRgb(rgbString);
+        if(tempRgb.string) {
+            rgb.array = tempRgb.array;
+            rgb.string = tempRgb.string;
+        }
+    }
+    return rgb;
 }
+
+// parse functions end
+
+// convert functions
+
+function singleHexToRgb(hex) {
+    var rgb = [];
+    if(hex.length === 6) {
+        rgb.push(parseInt(hex.slice(0, 2), 16));
+        rgb.push(parseInt(hex.slice(2, 4), 16));
+        rgb.push(parseInt(hex.slice(4, 6), 16));    
+    } else if(hex.length === 3) {
+        rgb.push(parseInt(hex.slice(0, 1) + hex.slice(0, 1), 16));
+        rgb.push(parseInt(hex.slice(1, 2) + hex.slice(1, 2), 16));
+        rgb.push(parseInt(hex.slice(2, 3) + hex.slice(2, 3), 16));
+    }
+    return rgb;
+}
+
+// convert functions end
 
 function Color(type, value) {
     // 根据输入的种类判断 new Rgb() or new Hex() or ...
@@ -251,7 +295,8 @@ function Color(type, value) {
                 break;
         }
     } else if(arguments.length === 1) {
-        // 只有一个参数的情况根据 string/array 返回 Hex/Rgb
+        // 只有一个参数的情况根据 string/array 判断
+        // rgb rgba cmyk 均可以是 array 形式 默认 3 位返回 rgb 4 位返回 rgba
         inputValue = arguments[0];
         if(typeof inputValue === 'string') {
             // w3cColors(reserved) or regex check
@@ -262,11 +307,17 @@ function Color(type, value) {
                 // regex check
                 if(colorRegex.hex.test(inputValue)) {
                     return new Hex(inputValue);
+                } else if(colorRegex.rgb.test(inputValue)) {
+                    return new Rgb(inputValue);
                 }
             }
-        } else if(Object.prototype.toString.call(inputValue) === '[object Array]') {
+        } else if(isArray(inputValue)) {
             // rgb or rgba
-            return new Rgb(arguments[0]);
+            if(inputValue.length === 3) {
+                return new Rgb(inputValue);
+            } else if(inputValue.length === 4) {
+                return new Rgba(inputValue);
+            }
         }
     } else if(arguments.length > 2) {
         // input Array like string
@@ -301,15 +352,23 @@ Color.prototype.toString = function() {
 }
 
 Color.prototype.toRgb = function() {
-    switch(this.type.toLowerCase()) {
+    return this.colorValue.rgb;
+
+    /*switch(this.type.toLowerCase()) {
         case 'rgb':
             // return 
             break;
         case 'hex':
-    }
-    if(this instanceof Rgb) {
+            // return 
+            break;
+    }*/
 
-    }
+    /*if(this instanceof Rgb) {
+
+    }*/
+}
+Color.prototype.toHex = function() {
+    return this.colorValue.hex;
 }
 
 function Rgb(rgbValue) {
@@ -319,8 +378,8 @@ function Rgb(rgbValue) {
 Rgb.prototype = new Color();
 Rgb.prototype.constructor = Rgb;
 Rgb.prototype.init = function(rgbValue) {
-    console.log(rgbValue);
-    this.colorValue.rgb = parseRgb(rgbValue)
+    this.colorValue.rgbFull = parseRgb(rgbValue);
+    this.colorValue.rgb = parseRgb(rgbValue).array;
 };
 
 function Hex(hexValue) {
@@ -330,8 +389,9 @@ function Hex(hexValue) {
 Hex.prototype = new Color();
 Hex.prototype.constructor = Hex;
 Hex.prototype.init = function(hexValue) {
-    this.colorValue.fullHex = parseHex(hexValue);
+    this.colorValue.hexFull = parseHex(hexValue);
     this.colorValue.hex = parseHex(hexValue).mostRecommendation;
+    this.colorValue.hexInside = parseHex(hexValue).sixWithoutPoundSign;
 };
 
 
@@ -390,3 +450,10 @@ Hex.prototype.constructor = Hex;
 Hex.prototype.init = function() {
 
 };*/
+/*
+color input support
+
+Hex: #aeaeae; aeaeae; skyblue
+
+Rgb: 123,123,123; [123, 123, 123]
+ */

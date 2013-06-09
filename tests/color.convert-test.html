@@ -7,10 +7,14 @@
 <body>
     <script src="../color.convert.js"></script>
     <script>
-        var a = new Color('skyblue');
-        console.log(a.colorValue.fullHex);
+        /*var a = new Color('skyblue');
+        console.log(a.colorValue.hexFull);
         var b = new Color('aeaeae');
-        console.log(b.colorValue.hex);
+        console.log(b.colorValue.hex);*/
+        // var c = new Color('12,12,12');
+        var c = new Color([12,12,12])
+        console.log(c);
+        console.log(c.colorValue.rgb);
     </script>
 </body>
 </html>
