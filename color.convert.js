@@ -220,7 +220,8 @@ function parseRgb(rgbValue) {
         rgbArray,
         rgbString;
     if(typeof rgbValue === 'string' && colorRegex.rgb.test(rgbValue)) {
-        rgbArray = rgbValue.split(','); // regex get split
+        var splitSign = rgbValue.match(colorRegex.rgb)[2];
+        rgbArray = rgbValue.split(splitSign);
         rgbString = rgbArray.join();
         rgb.array = rgbArray;
         rgb.string = rgbString;
@@ -455,5 +456,5 @@ color input support
 
 Hex: #aeaeae; aeaeae; skyblue
 
-Rgb: 123,123,123; [123, 123, 123]
+Rgb: 123,123,123; [123, 123, 123]; [123,123,123]; 
  */
