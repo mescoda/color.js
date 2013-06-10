@@ -1,6 +1,6 @@
 # color.js
 
-Convert and sort colors in HEX RGB HSV HSL CMYK YUV type
+Convert and sort colors in HEX RGB RGBA HSL HSV CMYK YUV type
 
 ## Browser support
 

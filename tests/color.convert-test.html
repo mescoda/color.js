@@ -7,6 +7,16 @@
 <body>
     <script src="../color.convert.js"></script>
     <script>
+
+        /*
+        color input support
+
+        Hex: '#aeaeae'; 'aeaeae'; 'skyblue'
+        Rgb: '123,123,123'; '123, 123, 123'; '123 123 123'; [123, 123, 123]; [123,123,123]; 
+        Rgba: 
+        Hsl: 200,90,68; 200,0.9,0.68
+         */
+
         /*var w3cColor = new Color('skyblue');
         console.log(w3cColor.colorValue.hexFull);
         var hex = new Color('aeaeae');
@@ -16,6 +26,14 @@
         // var rgb = new Color('12 12 12');
         var rgb = new Color([12,12,12])
         console.log(rgb.colorValue.rgb);
+
+        var rgba = new Color('12,12,12,0.5');
+        console.log(rgba.colorValue);
+
+        // var hsl = new Color('hsl', '200,90,90');
+        var hsl = new Color('hsl', '200,0.78,0.89');
+        // var hsl = new Color('hsl', '100');
+        console.log(hsl.colorValue);
     </script>
 </body>
 </html>

@@ -167,9 +167,11 @@ for(var i in w3cColors) {
 
 var colorRegex = {
     hex: /^#?([\da-f]{3}){1,2}$/i,
-    rgb: /^(2[0-4]\d|25[0-5]|[01]?\d?\d)([,\s]|,\s)(2[0-4]\d|25[0-5]|[01]?\d?\d)\2(2[0-4]\d|25[0-5]|[01]?\d?\d)$/,
-    rgba: /^$/,
-    hsl: /^$/,
+    rgb: /^(2[0-4]\d|25[0-5]|[1]?\d?\d)([,\s]|,\s)(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(2[0-4]\d|25[0-5]|[1]?\d?\d)$/,
+    rgba: /^(2[0-4]\d|25[0-5]|[1]?\d?\d)([,\s]|,\s)(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(1|0\.\d|0)$/,
+    hsl: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)\2(100|\d?\d)$/,
+    hslInteger: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)\2(100|\d?\d)$/,
+    hslDecimal: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)$/,
     hsla: /^$/
 };
 
@@ -182,6 +184,8 @@ function isArray(array) {
 }
 
 // parse functions
+// parse 的用途是不仅要对转换之前输入的数据做处理，还可以对传给外面的数据做处理，所以输出的数据需要是一个 object 包含了所有已知的格式
+
 function parseHex(hexValue) {
     var hex = {},
         sixWithoutPoundSign;
@@ -215,30 +219,94 @@ function parseHex(hexValue) {
     return hex;
 }
 
-function parseRgb(rgbValue) {
-    var rgb = {},
-        rgbArray,
-        rgbString;
-    if(typeof rgbValue === 'string' && colorRegex.rgb.test(rgbValue)) {
-        var splitSign = rgbValue.match(colorRegex.rgb)[2];
-        rgbArray = rgbValue.split(splitSign);
-        rgbString = rgbArray.join();
-        rgb.array = rgbArray;
-        rgb.string = rgbString;
-    } else if(isArray(rgbValue)) {
-        rgbString = rgbValue.join();
-        var tempRgb = parseRgb(rgbString);
-        if(tempRgb.string) {
-            rgb.array = tempRgb.array;
-            rgb.string = tempRgb.string;
+function parseArrayString(type, oriParseFn, inputValue) {
+    var output = {},
+        outputArray,
+        outputString;
+    if(typeof inputValue === 'string' && colorRegex[type].test(inputValue)) {
+        var splitSign = inputValue.match(colorRegex[type])[2];
+        outputArray = inputValue.split(splitSign);
+        outputString = outputArray.join();
+        output.array = outputArray;
+        output.string = outputString;
+    } else if(isArray(inputValue)) {
+        outputString = inputValue.join();
+        var tempOutput = oriParseFn(outputString);
+        if(tempOutput.string) {
+            output.array = tempOutput.array;
+            output.string = tempOutput.string;
         }
     }
+    // 保证输出的 array 里都是 number 不是 string
+    if(output.array && output.array.length > 0) {
+        for(var i = 0, iLen = output.array.length; i < iLen; i++) {
+            output.array[i] = +output.array[i];
+        }
+    }
+    return output;
+}
+
+function parseRgb(rgbValue) {
+    var rgb = {};
+    rgb = parseArrayString('rgb', arguments.callee, rgbValue);
     return rgb;
 }
 
+
+
+function parseRgba(rgbaValue) {
+    var rgba = {};
+    rgba = parseArrayString('rgba', arguments.callee, rgbaValue);
+    // modify if need
+    rgba.most = rgba.string;
+    return rgba;
+}
+
+function parseHsl(hslValue) {
+    var hsl = {};
+    if(colorRegex.hslInteger.test(hslValue)) {
+        hsl = parseArrayString('hslInteger', arguments.callee, hslValue);
+        if(hsl.string && hsl.string.length > 0) {
+            hsl.integerArray = hsl.array.slice();
+            hsl.decimalArray = [];
+            for(var i = 0, iLen = hsl.array.length; i < iLen; i++) {
+                if(i === 0) {
+                    hsl.decimalArray.push(+hsl.array[i]);
+                } else {
+                    hsl.decimalArray.push(hsl.array[i] / 100);
+                }
+            }
+            hsl.integerString = hsl.integerArray.join();
+            hsl.decimalString = hsl.decimalArray.join();
+            delete(hsl.string);
+            delete(hsl.array);
+        }
+    } else if(colorRegex.hslDecimal.test(hslValue)) {
+        hsl = parseArrayString('hslDecimal', arguments.callee, hslValue);
+        if(hsl.string && hsl.string.length > 0) {
+            hsl.decimalArray = hsl.array.slice();
+            hsl.integerArray = [];
+            for(var j = 0, jLen = hsl.array.length; j < jLen; j++) {
+                if(j === 0) {
+                    hsl.integerArray.push(+hsl.array[j]);
+                } else {
+                    hsl.integerArray.push(hsl.array[j] * 100);
+                }
+            }
+            hsl.integerString = hsl.integerArray.join();
+            hsl.decimalString = hsl.decimalArray.join();
+            delete(hsl.string);
+            delete(hsl.array);
+        }
+    }
+    return hsl;
+}
+
+// 考虑合并 parse function 的通用部分
 // parse functions end
 
 // convert functions
+// convert 函数要注意对不同的输入都做预判和处理
 
 function singleHexToRgb(hex) {
     var rgb = [];
@@ -310,6 +378,8 @@ function Color(type, value) {
                     return new Hex(inputValue);
                 } else if(colorRegex.rgb.test(inputValue)) {
                     return new Rgb(inputValue);
+                } else if(colorRegex.rgba.test(inputValue)) {
+                    return new Rgba(inputValue);
                 }
             }
         } else if(isArray(inputValue)) {
@@ -372,16 +442,6 @@ Color.prototype.toHex = function() {
     return this.colorValue.hex;
 }
 
-function Rgb(rgbValue) {
-    this.type = 'rgb';
-    this.init(rgbValue);
-}
-Rgb.prototype = new Color();
-Rgb.prototype.constructor = Rgb;
-Rgb.prototype.init = function(rgbValue) {
-    this.colorValue.rgbFull = parseRgb(rgbValue);
-    this.colorValue.rgb = parseRgb(rgbValue).array;
-};
 
 function Hex(hexValue) {
     this.type = 'hex';
@@ -390,14 +450,48 @@ function Hex(hexValue) {
 Hex.prototype = new Color();
 Hex.prototype.constructor = Hex;
 Hex.prototype.init = function(hexValue) {
-    this.colorValue.hexFull = parseHex(hexValue);
-    this.colorValue.hex = parseHex(hexValue).mostRecommendation;
-    this.colorValue.hexInside = parseHex(hexValue).sixWithoutPoundSign;
+    var parsedHex = parseHex(hexValue);
+    this.colorValue.hexFull = parsedHex;
+    this.colorValue.hex = parsedHex.mostRecommendation;
+    this.colorValue.hexInside = parsedHex.sixWithoutPoundSign;
 };
 
 
+function Rgb(rgbValue) {
+    this.type = 'rgb';
+    this.init(rgbValue);
+}
+Rgb.prototype = new Color();
+Rgb.prototype.constructor = Rgb;
+Rgb.prototype.init = function(rgbValue) {
+    var parsedRgb = parseRgb(rgbValue);
+    this.colorValue.rgbFull = parsedRgb;
+    this.colorValue.rgb = parsedRgb.array;
+};
 
+function Rgba(rgbaValue) {
+    this.type = 'rgba';
+    this.init(rgbaValue);
+}
+Rgba.prototype = new Color();
+Rgba.prototype.constructor = Rgba;
+Rgba.prototype.init = function(rgbaValue) {
+    var parsedRgba = parseRgba(rgbaValue);
+    this.colorValue.rgbaFull = parsedRgba;
+    this.colorValue.rgba = parsedRgba.array;
+};
 
+function Hsl(hslValue) {
+    this.type = 'hsl';
+    this.init(hslValue);
+}
+Hsl.prototype = new Color();
+Hsl.prototype.constructor = Hsl;
+Hsl.prototype.init = function(hslValue) {
+    var parsedHsl = parseHsl(hslValue);
+    this.colorValue.hslFull = parsedHsl;
+    this.colorValue.hsl = parsedHsl.integerArray;
+}
 window.Color = Color;
 
 })();
@@ -451,10 +545,3 @@ Hex.prototype.constructor = Hex;
 Hex.prototype.init = function() {
 
 };*/
-/*
-color input support
-
-Hex: #aeaeae; aeaeae; skyblue
-
-Rgb: 123,123,123; [123, 123, 123]; [123,123,123]; 
- */
