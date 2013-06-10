@@ -173,7 +173,8 @@ var colorRegex = {
     hslPercent: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)%?\2(100|\d?\d)%?$/,
     hslDecimal: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)$/,
     hsla: /^$/,
-    cmyk: /^$/,
+    cmykPercent: /^(100|\d?\d)%?([,\s]|,\s)(100|\d?\d)%?\2(100|\d?\d)%?\2(100|\d?\d)%?$/,
+    cmykDecimal: /^(1|0\.\d+|0)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)\2(1|0\.\d+|0)$/
 };
 
 function isArray(array) {
@@ -317,6 +318,44 @@ function parseHsx(type, hslValue) {
 
 function parseCmyk(cmykValue) {
     var cmyk = {};
+    if(isArray(cmykValue)) {
+        cmykValue = cmykValue.join();
+    }
+    if(colorRegex.cmykPercent.test(cmykValue)) {
+        // 90 90 90 90 类型的百分比整数 string
+        cmykValue = cmykValue.replace(/%/g, '');
+        cmyk = parseArrayString('cmykPercent', arguments.callee, cmykValue);
+        if(cmyk.string && cmyk.string.length > 0) {
+            cmyk.percentArray = cmyk.array.slice();
+            cmyk.decimalArray = [];
+            cmyk.percentArrayWithSign = [];
+            for(var i = 0, iLen = cmyk.array.length; i < iLen; i++) {
+                cmyk.decimalArray.push(cmyk.array[i] / 100);
+                cmyk.percentArrayWithSign.push(cmyk.array[i] + '%');
+            }
+        }
+    } else if(colorRegex.cmykDecimal.test(cmykValue)) {
+        // 0.9 0.9 0.9 0.9 类型的小数 string
+        cmyk = parseArrayString('cmykDecimal', arguments.callee, cmykValue);
+        if(cmyk.string && cmyk.string.length > 0) {
+            cmyk.decimalArray = cmyk.array.slice();
+            cmyk.percentArray = [];
+            cmyk.percentArrayWithSign = [];
+            for(var j = 0, jLen = cmyk.array.length; j < jLen; j++) {
+                cmyk.percentArray.push(cmyk.array[j] * 100);
+                cmyk.percentArrayWithSign.push(cmyk.array[j] * 100 + '%');
+            }
+            
+        }
+    }
+    if(cmyk.percentArray) {
+        cmyk.percentString = cmyk.percentArray.join();
+        cmyk.decimalString = cmyk.decimalArray.join();
+        cmyk.percentStringWithSign = cmyk.percentArrayWithSign.join();
+        delete(cmyk.string);
+        delete(cmyk.array);
+    }
+    return cmyk;
 }
 
 // parse functions end
@@ -529,6 +568,7 @@ Cmyk.prototype = new Color();
 Cmyk.prototype.constructor = Cmyk;
 Cmyk.prototype.init = function(cmykValue) {
     var parsedCmyk = parseCmyk(cmykValue);
+    this.colorValue.cmykFull = parsedCmyk;
 }
 
 window.Color = Color;
