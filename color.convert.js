@@ -170,9 +170,10 @@ var colorRegex = {
     rgb: /^(2[0-4]\d|25[0-5]|[1]?\d?\d)([,\s]|,\s)(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(2[0-4]\d|25[0-5]|[1]?\d?\d)$/,
     rgba: /^(2[0-4]\d|25[0-5]|[1]?\d?\d)([,\s]|,\s)(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(1|0\.\d|0)$/,
     hsl: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)\2(100|\d?\d)$/,
-    hslInteger: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)\2(100|\d?\d)$/,
+    hslPercent: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)%?\2(100|\d?\d)%?$/,
     hslDecimal: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)$/,
-    hsla: /^$/
+    hsla: /^$/,
+    cmyk: /^$/,
 };
 
 function isArray(array) {
@@ -258,52 +259,66 @@ function parseRgba(rgbaValue) {
     return rgba;
 }
 
-function parseHsl(hslValue) {
+function parseHsx(type, hslValue) {
+    // parseHsl & parseHsv
     var hsl = {};
     if(isArray(hslValue)) {
         hslValue = hslValue.join();   
     }
-    if(colorRegex.hslInteger.test(hslValue)) {
-        // 200 90 90 类型的整数 string
-        hsl = parseArrayString('hslInteger', arguments.callee, hslValue);
+    if(colorRegex.hslPercent.test(hslValue)) {
+        // 200 90 90 类型的百分比整数 string
+        hslValue = hslValue.replace(/%/g, '');
+        hsl = parseArrayString('hslPercent', arguments.callee, hslValue);
         if(hsl.string && hsl.string.length > 0) {
-            hsl.integerArray = hsl.array.slice();
+            hsl.percentArray = hsl.array.slice();
             hsl.decimalArray = [];
+            hsl.percentArrayWithSign = [];
             for(var i = 0, iLen = hsl.array.length; i < iLen; i++) {
                 if(i === 0) {
                     hsl.decimalArray.push(+hsl.array[i]);
+                    hsl.percentArrayWithSign.push(hsl.array[i] + '');
                 } else {
                     hsl.decimalArray.push(hsl.array[i] / 100);
+                    hsl.percentArrayWithSign.push(hsl.array[i] + '%');
                 }
             }
-            hsl.integerString = hsl.integerArray.join();
-            hsl.decimalString = hsl.decimalArray.join();
-            delete(hsl.string);
-            delete(hsl.array);
         }
     } else if(colorRegex.hslDecimal.test(hslValue)) {
         // 200 0.9 0.9 类型的小数 string
         hsl = parseArrayString('hslDecimal', arguments.callee, hslValue);
         if(hsl.string && hsl.string.length > 0) {
             hsl.decimalArray = hsl.array.slice();
-            hsl.integerArray = [];
+            hsl.percentArray = [];
+            hsl.percentArrayWithSign = [];
             for(var j = 0, jLen = hsl.array.length; j < jLen; j++) {
                 if(j === 0) {
-                    hsl.integerArray.push(+hsl.array[j]);
+                    hsl.percentArray.push(+hsl.array[j]);
+                    hsl.percentArrayWithSign.push(hsl.array[j] + '');
                 } else {
-                    hsl.integerArray.push(hsl.array[j] * 100);
+                    hsl.percentArray.push(hsl.array[j] * 100);
+                    hsl.percentArrayWithSign.push(hsl.array[j] * 100 + '%');
                 }
             }
-            hsl.integerString = hsl.integerArray.join();
-            hsl.decimalString = hsl.decimalArray.join();
-            delete(hsl.string);
-            delete(hsl.array);
+            
         }
+    }
+    if(hsl.percentArray) {
+        hsl.percentString = hsl.percentArray.join();
+        hsl.decimalString = hsl.decimalArray.join();
+        hsl.percentStringWithSign = hsl.percentArrayWithSign.join();
+        if(type === 'hsl') {
+            hsl.cssString = 'hsl(' + hsl.percentArrayWithSign.join() + ')';
+        }
+        delete(hsl.string);
+        delete(hsl.array);
     }
     return hsl;
 }
 
-// 考虑合并 parse function 的通用部分
+function parseCmyk(cmykValue) {
+    var cmyk = {};
+}
+
 // parse functions end
 
 // convert functions
@@ -351,11 +366,11 @@ function Color(type, value) {
             case 'rgb':
                 return new Rgb(value);
                 break;
-            case 'hsv':
-                return new Hsv(value);
-                break;
             case 'hsl':
                 return new Hsl(value);
+                break;
+            case 'hsv':
+                return new Hsv(value);
                 break;
             case 'cmyk':
                 return new Cmyk(value);
@@ -397,19 +412,19 @@ function Color(type, value) {
         // new Color('rgb', 123, 123, 123);
         switch(type.toLowerCase()) {
             case 'rgb':
-                return new Rgb(Array.prototype.slice.apply(arguments, 1));
-                break;
-            case 'hsv':
-                return new Hsv(Array.prototype.slice.apply(arguments, 1));
+                return new Rgb(Array.prototype.slice.call(arguments, 1));
                 break;
             case 'hsl':
-                return new Hsl(Array.prototype.slice.apply(arguments, 1));
+                return new Hsl(Array.prototype.slice.call(arguments, 1));
+                break;
+            case 'hsv':
+                return new Hsv(Array.prototype.slice.call(arguments, 1));
                 break;
             case 'cmyk':
-                return new Cmyk(Array.prototype.slice.apply(arguments, 1));
+                return new Cmyk(Array.prototype.slice.call(arguments, 1));
                 break;
             case 'yuv':
-                return new Yuv(Array.prototype.slice.apply(arguments, 1));
+                return new Yuv(Array.prototype.slice.call(arguments, 1));
                 break;
         }
     } else {
@@ -489,10 +504,33 @@ function Hsl(hslValue) {
 Hsl.prototype = new Color();
 Hsl.prototype.constructor = Hsl;
 Hsl.prototype.init = function(hslValue) {
-    var parsedHsl = parseHsl(hslValue);
+    var parsedHsl = parseHsx('hsl', hslValue);
     this.colorValue.hslFull = parsedHsl;
-    this.colorValue.hsl = parsedHsl.integerArray || [];
+    this.colorValue.hsl = parsedHsl.percentArray || [];
 }
+
+function Hsv(hsvValue) {
+    this.type = 'hsv';
+    this.init(hsvValue);
+}
+Hsv.prototype = new Color();
+Hsv.prototype.constructor = Hsv;
+Hsv.prototype.init = function(hsvValue) {
+    var parsedHsv = parseHsx('hsv', hsvValue);
+    this.colorValue.hsvFull = parsedHsv;
+    this.colorValue.hsv = parsedHsv.percentArray || [];
+}
+
+function Cmyk(cmykValue) {
+    this.type = 'cmyk';
+    this.init(cmykValue);
+}
+Cmyk.prototype = new Color();
+Cmyk.prototype.constructor = Cmyk;
+Cmyk.prototype.init = function(cmykValue) {
+    var parsedCmyk = parseCmyk(cmykValue);
+}
+
 window.Color = Color;
 
 })();
