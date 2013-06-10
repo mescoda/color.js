@@ -8,7 +8,19 @@ if(!Array.prototype.indexOf) {
             }
         }
         return -1;
-    }
+    };
+}
+
+if(!Array.prototype.map) {
+    Array.prototype.map = function(callback, context) {
+        var result = [];
+        if(typeof callback === 'function') {
+            for(var i = 0, iLen = this.length; i < iLen; i++) {
+                result.push(callback.call(context, this[i], i, this));
+            }
+        }
+        return result;
+    };
 }
 
 var w3cColors = {
@@ -247,16 +259,25 @@ function parseArrayString(type, oriParseFn, inputValue) {
 function parseRgb(rgbValue) {
     var rgb = {};
     rgb = parseArrayString('rgb', arguments.callee, rgbValue);
+    rgb.integerArray = rgb.array.map(function(item, index) {
+        return parseInt(item, 10);
+    });
+    rgb.integetString = rgb.integerArray.join();
     return rgb;
 }
-
 
 
 function parseRgba(rgbaValue) {
     var rgba = {};
     rgba = parseArrayString('rgba', arguments.callee, rgbaValue);
-    // modify if need
-    // rgba.most = rgba.string;
+    rgba.integerArray = rgba.array.map(function(item, index) {
+        if(index < rgba.array.length - 1) {
+            return parseInt(item, 10);
+        } else {
+            return item;
+        }
+    });
+    rgba.integetString = rgba.integerArray.join();
     return rgba;
 }
 
@@ -274,15 +295,39 @@ function parseHsx(type, hslValue) {
             hsl.percentArray = hsl.array.slice();
             hsl.decimalArray = [];
             hsl.percentArrayWithSign = [];
+            hsl.percentIntegerArray = [];
+            hsl.percentIntegerWithSignArray = [];
             for(var i = 0, iLen = hsl.array.length; i < iLen; i++) {
                 if(i === 0) {
                     hsl.decimalArray.push(+hsl.array[i]);
                     hsl.percentArrayWithSign.push(hsl.array[i] + '');
+                    hsl.percentIntegerArray.push(parseInt(hsl.array[i], 10));
+                    hsl.percentIntegerWithSignArray.push(parseInt(hsl.array[i], 10) + '');
                 } else {
                     hsl.decimalArray.push(hsl.array[i] / 100);
                     hsl.percentArrayWithSign.push(hsl.array[i] + '%');
+                    hsl.percentIntegerArray.push(parseInt(hsl.array[i], 10));
+                    hsl.percentIntegerWithSignArray.push(parseInt(hsl.array[i], 10) + '%');
                 }
             }
+            // map 的方法虽然感觉上写起来更加优雅，但其实上增加了循环的次数，影响了性能
+            /*hsl.decimalArray = hsl.array.map(function(item, index) {
+                if(index === 0) {
+                    return +item;
+                } else {
+                    return item / 100;
+                }
+            });
+            hsl.percentArrayWithSign = hsl.array.map(function(item, index) {
+                if(index === 0) {
+                    return item + '';
+                } else {
+                    return item + '%';
+                }
+            });
+            hsl.percentIntegerArray = hsl.array.map(function(item, index) {
+                return parseInt(item, 10);
+            });*/
         }
     } else if(colorRegex.hslDecimal.test(hslValue)) {
         // 200 0.9 0.9 类型的小数 string
@@ -291,13 +336,19 @@ function parseHsx(type, hslValue) {
             hsl.decimalArray = hsl.array.slice();
             hsl.percentArray = [];
             hsl.percentArrayWithSign = [];
+            hsl.percentIntegerArray = [];
+            hsl.percentIntegerWithSignArray = [];
             for(var j = 0, jLen = hsl.array.length; j < jLen; j++) {
                 if(j === 0) {
                     hsl.percentArray.push(+hsl.array[j]);
                     hsl.percentArrayWithSign.push(hsl.array[j] + '');
+                    hsl.percentIntegerArray.push(parseInt(hsl.array[j], 10));
+                    hsl.percentIntegerWithSignArray.push(parseInt(hsl.array[j], 10) + '');
                 } else {
                     hsl.percentArray.push(hsl.array[j] * 100);
                     hsl.percentArrayWithSign.push(hsl.array[j] * 100 + '%');
+                    hsl.percentIntegerArray.push(parseInt(hsl.array[j] * 100, 10));
+                    hsl.percentIntegerWithSignArray.push(parseInt(hsl.array[j] * 100, 10) + '%');
                 }
             }
             
@@ -307,8 +358,10 @@ function parseHsx(type, hslValue) {
         hsl.percentString = hsl.percentArray.join();
         hsl.decimalString = hsl.decimalArray.join();
         hsl.percentStringWithSign = hsl.percentArrayWithSign.join();
+        hsl.percentIntegerString = hsl.percentIntegerArray.join();
+        hsl.percentIntegerWithSignString = hsl.percentIntegerWithSignArray.join();
         if(type === 'hsl') {
-            hsl.cssString = 'hsl(' + hsl.percentArrayWithSign.join() + ')';
+            hsl.cssString = 'hsl(' + hsl.percentIntegerWithSignArray.join() + ')';
         }
         delete(hsl.string);
         delete(hsl.array);
@@ -467,7 +520,7 @@ function Color(type, value) {
                 break;
         }
     } else {
-        return value;
+        return null;
     }
 
 }
@@ -569,6 +622,17 @@ Cmyk.prototype.constructor = Cmyk;
 Cmyk.prototype.init = function(cmykValue) {
     var parsedCmyk = parseCmyk(cmykValue);
     this.colorValue.cmykFull = parsedCmyk;
+}
+
+function Yuv(yuvValue) {
+    this.type = 'yuv';
+    this.init(yuvValue);
+}
+Yuv.prototype = new Color();
+Yuv.prototype.constructor = Yuv;
+Yuv.prototype.init = function(yuvValue) {
+    var parsedYuv = parseYuv(yuvValue);
+    this.colorValue.yuvFull = parsedYuv;
 }
 
 window.Color = Color;
