@@ -223,19 +223,15 @@ function parseArrayString(type, oriParseFn, inputValue) {
     var output = {},
         outputArray,
         outputString;
+    if(isArray(inputValue)) {
+        inputValue = inputValue.join();
+    }
     if(typeof inputValue === 'string' && colorRegex[type].test(inputValue)) {
         var splitSign = inputValue.match(colorRegex[type])[2];
         outputArray = inputValue.split(splitSign);
         outputString = outputArray.join();
         output.array = outputArray;
         output.string = outputString;
-    } else if(isArray(inputValue)) {
-        outputString = inputValue.join();
-        var tempOutput = oriParseFn(outputString);
-        if(tempOutput.string) {
-            output.array = tempOutput.array;
-            output.string = tempOutput.string;
-        }
     }
     // 保证输出的 array 里都是 number 不是 string
     if(output.array && output.array.length > 0) {
@@ -258,13 +254,17 @@ function parseRgba(rgbaValue) {
     var rgba = {};
     rgba = parseArrayString('rgba', arguments.callee, rgbaValue);
     // modify if need
-    rgba.most = rgba.string;
+    // rgba.most = rgba.string;
     return rgba;
 }
 
 function parseHsl(hslValue) {
     var hsl = {};
+    if(isArray(hslValue)) {
+        hslValue = hslValue.join();   
+    }
     if(colorRegex.hslInteger.test(hslValue)) {
+        // 200 90 90 类型的整数 string
         hsl = parseArrayString('hslInteger', arguments.callee, hslValue);
         if(hsl.string && hsl.string.length > 0) {
             hsl.integerArray = hsl.array.slice();
@@ -282,6 +282,7 @@ function parseHsl(hslValue) {
             delete(hsl.array);
         }
     } else if(colorRegex.hslDecimal.test(hslValue)) {
+        // 200 0.9 0.9 类型的小数 string
         hsl = parseArrayString('hslDecimal', arguments.callee, hslValue);
         if(hsl.string && hsl.string.length > 0) {
             hsl.decimalArray = hsl.array.slice();
@@ -466,7 +467,7 @@ Rgb.prototype.constructor = Rgb;
 Rgb.prototype.init = function(rgbValue) {
     var parsedRgb = parseRgb(rgbValue);
     this.colorValue.rgbFull = parsedRgb;
-    this.colorValue.rgb = parsedRgb.array;
+    this.colorValue.rgb = parsedRgb.array || [];
 };
 
 function Rgba(rgbaValue) {
@@ -478,7 +479,7 @@ Rgba.prototype.constructor = Rgba;
 Rgba.prototype.init = function(rgbaValue) {
     var parsedRgba = parseRgba(rgbaValue);
     this.colorValue.rgbaFull = parsedRgba;
-    this.colorValue.rgba = parsedRgba.array;
+    this.colorValue.rgba = parsedRgba.array || [];
 };
 
 function Hsl(hslValue) {
@@ -490,7 +491,7 @@ Hsl.prototype.constructor = Hsl;
 Hsl.prototype.init = function(hslValue) {
     var parsedHsl = parseHsl(hslValue);
     this.colorValue.hslFull = parsedHsl;
-    this.colorValue.hsl = parsedHsl.integerArray;
+    this.colorValue.hsl = parsedHsl.integerArray || [];
 }
 window.Color = Color;
 
