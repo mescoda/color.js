@@ -186,7 +186,9 @@ var colorRegex = {
     hslDecimal: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)$/,
     hsla: /^$/,
     cmykPercent: /^(100|\d?\d)%?([,\s]|,\s)(100|\d?\d)%?\2(100|\d?\d)%?\2(100|\d?\d)%?$/,
-    cmykDecimal: /^(1|0\.\d+|0)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)\2(1|0\.\d+|0)$/
+    cmykDecimal: /^(1|0\.\d+|0)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)\2(1|0\.\d+|0)$/,
+    // yuv: 0-255 0-255 0-255
+    yuv: /^$/
 };
 
 function isArray(array) {
@@ -382,9 +384,13 @@ function parseCmyk(cmykValue) {
             cmyk.percentArray = cmyk.array.slice();
             cmyk.decimalArray = [];
             cmyk.percentArrayWithSign = [];
+            cmyk.percentIntegerArray = [];
+            cmyk.percentIntegerWithSignArray = [];
             for(var i = 0, iLen = cmyk.array.length; i < iLen; i++) {
                 cmyk.decimalArray.push(cmyk.array[i] / 100);
                 cmyk.percentArrayWithSign.push(cmyk.array[i] + '%');
+                cmyk.percentIntegerArray.push(parseInt(cmyk.array[i], 10)) ;
+                cmyk.percentIntegerWithSignArray.push(parseInt(cmyk.array[i], 10) + '%');
             }
         }
     } else if(colorRegex.cmykDecimal.test(cmykValue)) {
@@ -394,17 +400,22 @@ function parseCmyk(cmykValue) {
             cmyk.decimalArray = cmyk.array.slice();
             cmyk.percentArray = [];
             cmyk.percentArrayWithSign = [];
+            cmyk.percentIntegerArray = [];
+            cmyk.percentIntegerWithSignArray = [];
             for(var j = 0, jLen = cmyk.array.length; j < jLen; j++) {
                 cmyk.percentArray.push(cmyk.array[j] * 100);
                 cmyk.percentArrayWithSign.push(cmyk.array[j] * 100 + '%');
+                cmyk.percentIntegerArray.push(parseInt(cmyk.array[j] * 100, 10));
+                cmyk.percentIntegerWithSignArray.push(parseInt(cmyk.array[j] * 100, 10) + '%');
             }
-            
         }
     }
     if(cmyk.percentArray) {
         cmyk.percentString = cmyk.percentArray.join();
         cmyk.decimalString = cmyk.decimalArray.join();
         cmyk.percentStringWithSign = cmyk.percentArrayWithSign.join();
+        cmyk.percentIntegerString = cmyk.percentIntegerArray.join();
+        cmyk.percentIntegerWithSignString = cmyk.percentIntegerWithSignArray.join();
         delete(cmyk.string);
         delete(cmyk.array);
     }
@@ -631,7 +642,10 @@ function Yuv(yuvValue) {
 Yuv.prototype = new Color();
 Yuv.prototype.constructor = Yuv;
 Yuv.prototype.init = function(yuvValue) {
-    var parsedYuv = parseYuv(yuvValue);
+    // yuv 因为不常用现在只支持 yuv 三个数值都是 0-255 的类似 rgb 的规范
+    // Y ranges from 0 to 1 (or 0 to 255 in digital formats), while U and V range from -0.5 to 0.5 (or -128 to 127 in signed digital form, or 0 to 255 in unsigned form).
+    // via: http://softpixel.com/~cwright/programming/colorspace/yuv/
+    var parsedYuv = parseRgb(yuvValue);
     this.colorValue.yuvFull = parsedYuv;
 }
 
