@@ -179,11 +179,11 @@ for(var i in w3cColors) {
 
 var colorRegex = {
     hex: /^#?([\da-f]{3}){1,2}$/i,
-    rgb: /^(2[0-4]\d|25[0-5]|[1]?\d?\d)([,\s]|,\s)(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(2[0-4]\d|25[0-5]|[1]?\d?\d)$/,
+    rgb: /^(2[0-4]\d(?:\.\d+)?|25[0-4](?:\.\d+)?|255|[1]?\d?\d(?:\.\d+)?)([,\s]|,\s)(2[0-4]\d(?:\.\d+)?|25[0-4](?:\.\d+)?|255|[1]?\d?\d(?:\.\d+)?)\2(2[0-4]\d(?:\.\d+)?|25[0-4](?:\.\d+)?|255|[1]?\d?\d(?:\.\d+)?)$/,
     rgba: /^(2[0-4]\d|25[0-5]|[1]?\d?\d)([,\s]|,\s)(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(1|0\.\d|0)$/,
     hsl: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)\2(100|\d?\d)$/,
     hslPercent: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)%?\2(100|\d?\d)%?$/,
-    hslDecimal: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)$/,
+    hslDecimal: /^(3[0-5]\d(?:\.\d+)?|360|[12]?\d?\d(?:\.\d+)?)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)$/,
     hsla: /^$/,
     cmykPercent: /^(100|\d?\d)%?([,\s]|,\s)(100|\d?\d)%?\2(100|\d?\d)%?\2(100|\d?\d)%?$/,
     cmykDecimal: /^(1|0\.\d+|0)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)\2(1|0\.\d+|0)$/,
@@ -262,9 +262,9 @@ function parseRgb(rgbValue) {
     var rgb = {};
     rgb = parseArrayString('rgb', arguments.callee, rgbValue);
     rgb.integerArray = rgb.array.map(function(item, index) {
-        return parseInt(item, 10);
+        return Math.round(item);
     });
-    rgb.integetString = rgb.integerArray.join();
+    rgb.integerString = rgb.integerArray.join();
     return rgb;
 }
 
@@ -274,12 +274,12 @@ function parseRgba(rgbaValue) {
     rgba = parseArrayString('rgba', arguments.callee, rgbaValue);
     rgba.integerArray = rgba.array.map(function(item, index) {
         if(index < rgba.array.length - 1) {
-            return parseInt(item, 10);
+            return Math.round(item);
         } else {
             return item;
         }
     });
-    rgba.integetString = rgba.integerArray.join();
+    rgba.integerString = rgba.integerArray.join();
     return rgba;
 }
 
@@ -303,13 +303,13 @@ function parseHsx(type, hslValue) {
                 if(i === 0) {
                     hsl.decimalArray.push(+hsl.array[i]);
                     hsl.percentArrayWithSign.push(hsl.array[i] + '');
-                    hsl.percentIntegerArray.push(parseInt(hsl.array[i], 10));
-                    hsl.percentIntegerWithSignArray.push(parseInt(hsl.array[i], 10) + '');
+                    hsl.percentIntegerArray.push(Math.round(hsl.array[i]));
+                    hsl.percentIntegerWithSignArray.push(Math.round(hsl.array[i]) + '');
                 } else {
                     hsl.decimalArray.push(hsl.array[i] / 100);
                     hsl.percentArrayWithSign.push(hsl.array[i] + '%');
-                    hsl.percentIntegerArray.push(parseInt(hsl.array[i], 10));
-                    hsl.percentIntegerWithSignArray.push(parseInt(hsl.array[i], 10) + '%');
+                    hsl.percentIntegerArray.push(Math.round(hsl.array[i]));
+                    hsl.percentIntegerWithSignArray.push(Math.round(hsl.array[i]) + '%');
                 }
             }
             // map 的方法虽然感觉上写起来更加优雅，但其实上增加了循环的次数，影响了性能
@@ -328,7 +328,7 @@ function parseHsx(type, hslValue) {
                 }
             });
             hsl.percentIntegerArray = hsl.array.map(function(item, index) {
-                return parseInt(item, 10);
+                return Math.round(item);
             });*/
         }
     } else if(colorRegex.hslDecimal.test(hslValue)) {
@@ -344,13 +344,13 @@ function parseHsx(type, hslValue) {
                 if(j === 0) {
                     hsl.percentArray.push(+hsl.array[j]);
                     hsl.percentArrayWithSign.push(hsl.array[j] + '');
-                    hsl.percentIntegerArray.push(parseInt(hsl.array[j], 10));
-                    hsl.percentIntegerWithSignArray.push(parseInt(hsl.array[j], 10) + '');
+                    hsl.percentIntegerArray.push(Math.round(hsl.array[j]));
+                    hsl.percentIntegerWithSignArray.push(Math.round(hsl.array[j]) + '');
                 } else {
                     hsl.percentArray.push(hsl.array[j] * 100);
                     hsl.percentArrayWithSign.push(hsl.array[j] * 100 + '%');
-                    hsl.percentIntegerArray.push(parseInt(hsl.array[j] * 100, 10));
-                    hsl.percentIntegerWithSignArray.push(parseInt(hsl.array[j] * 100, 10) + '%');
+                    hsl.percentIntegerArray.push(Math.round(hsl.array[j] * 100));
+                    hsl.percentIntegerWithSignArray.push(Math.round(hsl.array[j] * 100) + '%');
                 }
             }
             
@@ -389,8 +389,8 @@ function parseCmyk(cmykValue) {
             for(var i = 0, iLen = cmyk.array.length; i < iLen; i++) {
                 cmyk.decimalArray.push(cmyk.array[i] / 100);
                 cmyk.percentArrayWithSign.push(cmyk.array[i] + '%');
-                cmyk.percentIntegerArray.push(parseInt(cmyk.array[i], 10)) ;
-                cmyk.percentIntegerWithSignArray.push(parseInt(cmyk.array[i], 10) + '%');
+                cmyk.percentIntegerArray.push(Math.round(cmyk.array[i])) ;
+                cmyk.percentIntegerWithSignArray.push(Math.round(cmyk.array[i]) + '%');
             }
         }
     } else if(colorRegex.cmykDecimal.test(cmykValue)) {
@@ -405,8 +405,8 @@ function parseCmyk(cmykValue) {
             for(var j = 0, jLen = cmyk.array.length; j < jLen; j++) {
                 cmyk.percentArray.push(cmyk.array[j] * 100);
                 cmyk.percentArrayWithSign.push(cmyk.array[j] * 100 + '%');
-                cmyk.percentIntegerArray.push(parseInt(cmyk.array[j] * 100, 10));
-                cmyk.percentIntegerWithSignArray.push(parseInt(cmyk.array[j] * 100, 10) + '%');
+                cmyk.percentIntegerArray.push(Math.round(cmyk.array[j] * 100));
+                cmyk.percentIntegerWithSignArray.push(Math.round(cmyk.array[j] * 100) + '%');
             }
         }
     }
@@ -439,6 +439,229 @@ function singleHexToRgb(hex) {
         rgb.push(parseInt(hex.slice(2, 3) + hex.slice(2, 3), 16));
     }
     return rgb;
+}
+
+function singleRgbToHex(rgb) {
+    var hex = '';
+    /*for(var i = 0, iLen = rgb.length; i < iLen; i++) {
+        hex += (rgb[i] < 16 ? '0' : '') + rgb[i].toString(16);
+    }*/
+    var hexr = Math.max(Math.min(parseInt(rgb[0], 10), 255), 0),
+        hexg = Math.max(Math.min(parseInt(rgb[1], 10), 255), 0),
+        hexb = Math.max(Math.min(parseInt(rgb[2], 10), 255), 0);
+    hexr = hexr > 15 ? hexr.toString(16) : '0' + hexr.toString(16);
+    hexg = hexg > 15 ? hexg.toString(16) : '0' + hexg.toString(16);
+    hexb = hexb > 15 ? hexb.toString(16) : '0' + hexb.toString(16);
+    hex =  hexr + hexg + hexb;
+    return hex.toUpperCase();
+}
+
+function singleRgbToHsl(rgb) {
+    var r = Math.max(Math.min(parseInt(rgb[0], 10), 255), 0) / 255,
+        g = Math.max(Math.min(parseInt(rgb[1], 10), 255), 0) / 255,
+        b = Math.max(Math.min(parseInt(rgb[2], 10), 255), 0) / 255,
+        min = Math.min(r, g, b),
+        max = Math.max(r, g, b),
+        h,
+        s,
+        l,
+        round = typeof round === 'undefined' ? false : round;
+    if(max === min) {
+        h = 0;
+    } else if(max === r && g >= b) {
+        h = 60 * (g - b) / (max - min);
+    } else if(max === r && g < b) {
+        h = 60 * (g - b) / (max - min) + 360;
+    } else if(max === g) {
+        h = 60 * (b - r) / (max - min) + 120;
+    } else if(max === b) {
+        h = 60 * (r - g) / (max - min) + 240;
+    }
+
+    l = (max + min) / 2;
+
+    if(l === 0) {
+        s = 0;
+    } else if(l <= 0.5) {
+        s = (max - min) / (max + min);
+    } else {
+        s = (max - min) / (2 - max - min);
+    }
+    return [h, s, l];
+}
+
+function singleHslToRgb(hsl) {
+    var r,
+        g,
+        b,
+        h = Math.max(Math.min(parseInt(hsl[0], 10), 360), 0) / 360,
+        /*s = Math.max(Math.min(parseInt(hsl[1], 10), 100), 0) / 100,
+        l = Math.max(Math.min(parseInt(hsl[2], 10), 100), 0) / 100,*/
+        s = hsl[1],
+        l = hsl[2],
+        q = l < 0.5 ? l * (1 + s) : l + s - l * s,
+        p = 2 * l - q;
+    function hue2rgb(p, q, t) {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+    }
+    if(s = 0) {
+        r = g = b = l;
+    } else {
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+    return [r * 255, g * 255, b * 255];
+}
+
+function singleRgbToHsv(rgb) {
+    var r = Math.max(Math.min(parseInt(rgb[0], 10), 255), 0) / 255,
+        g = Math.max(Math.min(parseInt(rgb[1], 10), 255), 0) / 255,
+        b = Math.max(Math.min(parseInt(rgb[2], 10), 255), 0) / 255,
+        min = Math.min(r, g, b),
+        max = Math.max(r, g, b),
+        h,
+        s,
+        v;
+    if(max === min) {
+        h = 0;
+    } else if(max === r && g >= b) {
+        h = 60 * (g - b) / (max - min);
+    } else if(max === r && g < b) {
+        h = 60 * (g - b) / (max - min) + 360;
+    } else if(max === g) {
+        h = 60 * (b - r) / (max - min) + 120;
+    } else if(max === b) {
+        h = 60 * (r - g) / (max - min) + 240;
+    }
+    if(max === 0) {
+        s = 0;
+    } else {
+        s = (max - min) / max;
+    }
+    v = max;
+    return [h, s, v];
+    // [213.1578947368421, 0.1557377049180328, 0.9568627450980393]
+}
+
+function singleHsvToRgb(hsv) {
+    var r,
+        g,
+        b,
+        h = hsv[0],
+        s = hsv[1],
+        v = hsv[2],
+        i = Math.floor(h / 60),
+        f = (h / 60) - i,
+        p = v * (1 -s),
+        q = v * (1- f * s),
+        t = v * (1 - (1 - f) * s);
+    switch(i % 6) {
+        case 0:
+            r = v;
+            g = t;
+            b = p;
+            break;
+        case 1:
+            r = q;
+            g = v;
+            b = p;
+            break;
+        case 2:
+            r = p;
+            g = v;
+            b = t;
+            break;
+        case 3:
+            r = p;
+            g = q;
+            b = v;
+            break;
+        case 4:
+            r = t;
+            g = p;
+            b = v;
+            break;
+        case 5:
+            r = v;
+            g = p;
+            b = q;
+            break;
+    }
+    return [r * 255, g * 255, b * 255];
+}
+
+function singleRgbToCmyk(rgb) {
+    var r = Math.max(Math.min(parseInt(rgb[0], 10), 255), 0) / 255,
+        g = Math.max(Math.min(parseInt(rgb[1], 10), 255), 0) / 255,
+        b = Math.max(Math.min(parseInt(rgb[2], 10), 255), 0) / 255,
+        c,
+        m,
+        t,
+        k;
+    c = (1 - r);
+    m = (1 - g);
+    y = (1 - b);
+    if(Math.min(c, m, y) === 1) {
+        return [0, 0, 0, 1];
+    } else {
+        k = Math.min(c, m, y);
+        c = (c - k) / (1 - k);
+        m = (m - k) / (1 - k);
+        y = (y - k) / (1 - k);
+    }
+    return [c, m, y, k];
+}
+
+function singleCmykToRgb(cmyk) {
+    var c = cmyk[0],
+        m = cmyk[1],
+        y = cmyk[2],
+        k = cmyk[3],
+        c1 = c * (1 - k) + k,
+        m1 = m * (1 - k) + k,
+        y1 = y * (1 - k) + k;
+    return [(1 - c1) * 255, (1 - m1) * 255, (1 - y1) * 255];
+}
+
+function singleRgbToYuv(rgb) {
+    var r = Math.max(Math.min(parseInt(rgb[0], 10), 255), 0),
+        g = Math.max(Math.min(parseInt(rgb[1], 10), 255), 0),
+        b = Math.max(Math.min(parseInt(rgb[2], 10), 255), 0),
+        y,
+        u,
+        v;
+    y = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+    // u = Math.round((((b - y) * 0.493) + 111) / 222 * 255);
+    // v = Math.round((((r - y) * 0.877) + 155) / 312 * 255);
+    u = 0.436 * (b - y) / (1 - 0.114) + 128;
+    v = 0.615 * (r - y) / (1 - 0.299) + 128
+    return [y, u, v];
+    // [109, 167.86004514672686, 203.4493580599144]
+}
+function singleYuvToRgb(yuv) {
+    /*var y = parseInt(yuv[0], 10),
+        u = parseInt(yuv[1], 10) / 255 * 222 - 111,
+        v = parseInt(yuv[2], 10) / 255 * 312 - 155,
+        r, g, b;
+    r = Math.round(y + v / 0.877);
+    g = Math.round(y - 0.39466 * u - 0.5806 * v);
+    b = Math.round(y + u / 0.493);*/
+    var y = yuv[0],
+        u = yuv[1],
+        v = yuv[2],
+        r,
+        g,
+        b;
+    r = y + 1.13982 * (v - 128);
+    g = y - 0.39465 * (u - 128) - 0.58060 * (v - 128);
+    b = y + 2.03211 * (u - 128);
+    return [r, g, b];
 }
 
 // convert functions end
@@ -511,7 +734,7 @@ function Color(type, value) {
         }
     } else if(arguments.length > 2) {
         // input Array like string
-        // rgb hsl hsv
+        // rgb hsl hsv...
         // new Color('rgb', 123, 123, 123);
         switch(type.toLowerCase()) {
             case 'rgb':
@@ -533,13 +756,8 @@ function Color(type, value) {
     } else {
         return null;
     }
-
 }
 
-Color.prototype.toString = function() {
-    // return Object.prototype.toString.call(this);
-    return Array.prototype.join.call(this);
-}
 
 Color.prototype.toRgb = function() {
     return this.colorValue.rgb;
@@ -569,12 +787,17 @@ function Hex(hexValue) {
 Hex.prototype = new Color();
 Hex.prototype.constructor = Hex;
 Hex.prototype.init = function(hexValue) {
-    var parsedHex = parseHex(hexValue);
+    /*var parsedHex = parseHex(hexValue);
     this.colorValue.hexFull = parsedHex;
-    this.colorValue.hex = parsedHex.mostRecommendation;
-    this.colorValue.hexInside = parsedHex.sixWithoutPoundSign;
+    this.colorValue.hex = parsedHex.mostRecommendation;*/
+    // var hexInterior = parsedHex.sixWithoutPoundSign;
+    var hexInterior = setFullHex(hexValue, this);
+    var rgbInterior = setFullRgb(singleHexToRgb(hexInterior), this);
+    setFullHsl(singleRgbToHsl(rgbInterior), this);
+    setFullHsv(singleRgbToHsv(rgbInterior), this);
+    setFullCmyk(singleRgbToCmyk(rgbInterior), this);
+    setFullYuv(singleRgbToYuv(rgbInterior), this);
 };
-
 
 function Rgb(rgbValue) {
     this.type = 'rgb';
@@ -583,9 +806,10 @@ function Rgb(rgbValue) {
 Rgb.prototype = new Color();
 Rgb.prototype.constructor = Rgb;
 Rgb.prototype.init = function(rgbValue) {
-    var parsedRgb = parseRgb(rgbValue);
-    this.colorValue.rgbFull = parsedRgb;
-    this.colorValue.rgb = parsedRgb.array || [];
+    setFullRgb(rgbValue, this);
+    /*var parsedRgb = parseRgb(rgbValue);
+    this.colorValue.rgbFull = parsedRgb;*/
+    // this.colorValue.rgb = parsedRgb.array || [];
 };
 
 function Rgba(rgbaValue) {
@@ -649,6 +873,50 @@ Yuv.prototype.init = function(yuvValue) {
     this.colorValue.yuvFull = parsedYuv;
 }
 
+function setFullHex(hexValue, context) {
+    var parsedHex = parseHex(hexValue);
+    context.colorValue.hexFull = parsedHex;
+    context.colorValue.hex = parsedHex.mostRecommendation;
+    // 返回这个颜色值的 interior
+    return parsedHex.sixWithoutPoundSign;
+}
+
+function setFullRgb(rgbValue, context) {
+    var parsedRgb = parseRgb(rgbValue);
+    context.colorValue.rgbFull = parsedRgb;
+    context.colorValue.rgb = parsedRgb.integerArray;
+    return parsedRgb.integerArray;
+}
+
+function setFullHsl(hslValue, context) {
+    var parsedHsl = parseHsx('hsl', hslValue);
+    context.colorValue.hslFull = parsedHsl;
+    context.colorValue.hsl = parsedHsl.percentIntegerArray;
+    return parsedHsl.decimalArray;
+}
+
+function setFullHsv(hsvValue, context) {
+    var parsedHsv = parseHsx('hsv', hsvValue);
+    context.colorValue.hsvFull = parsedHsv;
+    context.colorValue.hsv = parsedHsv.percentIntegerArray;
+    return parsedHsv.decimalArray;
+}
+
+function setFullCmyk(cmykValue, context) {
+    var parsedCmyk = parseCmyk(cmykValue);
+    context.colorValue.cmykFull = parsedCmyk;
+    context.colorValue.cmyk = parsedCmyk.percentIntegerArray;
+    return parsedCmyk.decimalArray;
+}
+
+function setFullYuv(yuvValue, context) {
+    var parsedYuv = parseRgb(yuvValue);
+    context.colorValue.yuvFull = parsedYuv;
+    context.colorValue.yuv = parsedYuv.integerArray;
+    return parsedYuv.array;
+}
+
+
 window.Color = Color;
 
 })();
@@ -680,25 +948,4 @@ a.toHsl();
 var a = [new Color(), new Color(), new Color()];
 
 
-function Color() {
-
-}
-function Rgb() {
-    this.type = 'rgb';
-    this.init();
-}
-Rgb.prototype = new Color();
-Rgb.prototype.constructor = Rgb;
-Rgb.prototype.init = function() {
-
-};
-
-function Hex() {
-    this.type = 'hex';
-    this.init();
-}
-Hex.prototype = new Color();
-Hex.prototype.constructor = Hex;
-Hex.prototype.init = function() {
-
-};*/
+*/
