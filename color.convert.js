@@ -637,22 +637,22 @@ function singleRgbToYuv(rgb) {
         u,
         v;
     y = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-    // u = Math.round((((b - y) * 0.493) + 111) / 222 * 255);
-    // v = Math.round((((r - y) * 0.877) + 155) / 312 * 255);
-    u = 0.436 * (b - y) / (1 - 0.114) + 128;
-    v = 0.615 * (r - y) / (1 - 0.299) + 128
+    u = Math.round((((b - y) * 0.493) + 111) / 222 * 255);
+    v = Math.round((((r - y) * 0.877) + 155) / 312 * 255);
+    /*u = 0.436 * (b - y) / (1 - 0.114) + 128;
+    v = 0.615 * (r - y) / (1 - 0.299) + 128*/
     return [y, u, v];
     // [109, 167.86004514672686, 203.4493580599144]
 }
 function singleYuvToRgb(yuv) {
-    /*var y = parseInt(yuv[0], 10),
+    var y = parseInt(yuv[0], 10),
         u = parseInt(yuv[1], 10) / 255 * 222 - 111,
         v = parseInt(yuv[2], 10) / 255 * 312 - 155,
         r, g, b;
     r = Math.round(y + v / 0.877);
     g = Math.round(y - 0.39466 * u - 0.5806 * v);
-    b = Math.round(y + u / 0.493);*/
-    var y = yuv[0],
+    b = Math.round(y + u / 0.493);
+    /*var y = yuv[0],
         u = yuv[1],
         v = yuv[2],
         r,
@@ -660,7 +660,7 @@ function singleYuvToRgb(yuv) {
         b;
     r = y + 1.13982 * (v - 128);
     g = y - 0.39465 * (u - 128) - 0.58060 * (v - 128);
-    b = y + 2.03211 * (u - 128);
+    b = y + 2.03211 * (u - 128);*/
     return [r, g, b];
 }
 
@@ -778,7 +778,18 @@ Color.prototype.toRgb = function() {
 Color.prototype.toHex = function() {
     return this.colorValue.hex;
 }
-
+Color.prototype.toHsl = function() {
+    return this.colorValue.hsl;
+}
+Color.prototype.toHsv = function() {
+    return this.colorValue.hsv;
+}
+Color.prototype.toCmyk = function() {
+    return this.colorValue.cmyk;
+}
+Color.prototype.toYuv = function() {
+    return this.colorValue.yuv
+}
 
 function Hex(hexValue) {
     this.type = 'hex';
@@ -787,10 +798,6 @@ function Hex(hexValue) {
 Hex.prototype = new Color();
 Hex.prototype.constructor = Hex;
 Hex.prototype.init = function(hexValue) {
-    /*var parsedHex = parseHex(hexValue);
-    this.colorValue.hexFull = parsedHex;
-    this.colorValue.hex = parsedHex.mostRecommendation;*/
-    // var hexInterior = parsedHex.sixWithoutPoundSign;
     var hexInterior = setFullHex(hexValue, this);
     var rgbInterior = setFullRgb(singleHexToRgb(hexInterior), this);
     setFullHsl(singleRgbToHsl(rgbInterior), this);
@@ -806,10 +813,12 @@ function Rgb(rgbValue) {
 Rgb.prototype = new Color();
 Rgb.prototype.constructor = Rgb;
 Rgb.prototype.init = function(rgbValue) {
-    setFullRgb(rgbValue, this);
-    /*var parsedRgb = parseRgb(rgbValue);
-    this.colorValue.rgbFull = parsedRgb;*/
-    // this.colorValue.rgb = parsedRgb.array || [];
+    var rgbInterior = setFullRgb(rgbValue, this);
+    setFullHex(singleRgbToHex(rgbInterior), this);
+    setFullHsl(singleRgbToHsl(rgbInterior), this);
+    setFullHsv(singleRgbToHsv(rgbInterior), this);
+    setFullCmyk(singleRgbToCmyk(rgbInterior), this);
+    setFullYuv(singleRgbToYuv(rgbInterior), this);
 };
 
 function Rgba(rgbaValue) {
@@ -831,9 +840,12 @@ function Hsl(hslValue) {
 Hsl.prototype = new Color();
 Hsl.prototype.constructor = Hsl;
 Hsl.prototype.init = function(hslValue) {
-    var parsedHsl = parseHsx('hsl', hslValue);
-    this.colorValue.hslFull = parsedHsl;
-    this.colorValue.hsl = parsedHsl.percentArray || [];
+    var hslInterior = setFullHsl(hslValue, this);
+    var rgbInterior = setFullRgb(singleHslToRgb(hslInterior), this);
+    setFullHex(singleRgbToHex(rgbInterior), this);
+    setFullHsv(singleRgbToHsv(rgbInterior), this);
+    setFullCmyk(singleRgbToCmyk(rgbInterior), this);
+    setFullYuv(singleRgbToYuv(rgbInterior), this);
 }
 
 function Hsv(hsvValue) {
@@ -843,9 +855,12 @@ function Hsv(hsvValue) {
 Hsv.prototype = new Color();
 Hsv.prototype.constructor = Hsv;
 Hsv.prototype.init = function(hsvValue) {
-    var parsedHsv = parseHsx('hsv', hsvValue);
-    this.colorValue.hsvFull = parsedHsv;
-    this.colorValue.hsv = parsedHsv.percentArray || [];
+    var hsvInterior = setFullHsv(hsvValue, this);
+    var rgbInterior = setFullRgb(singleHsvToRgb(hsvInterior), this);
+    setFullHex(singleRgbToHex(rgbInterior), this);
+    setFullHsl(singleRgbToHsl(rgbInterior), this);
+    setFullCmyk(singleRgbToCmyk(rgbInterior), this);
+    setFullYuv(singleRgbToYuv(rgbInterior), this);
 }
 
 function Cmyk(cmykValue) {
@@ -855,8 +870,12 @@ function Cmyk(cmykValue) {
 Cmyk.prototype = new Color();
 Cmyk.prototype.constructor = Cmyk;
 Cmyk.prototype.init = function(cmykValue) {
-    var parsedCmyk = parseCmyk(cmykValue);
-    this.colorValue.cmykFull = parsedCmyk;
+    var cmykInterior = setFullCmyk(cmykValue, this);
+    var rgbInterior = setFullRgb(singleCmykToRgb(cmykInterior), this);
+    setFullHex(singleRgbToHex(rgbInterior), this);
+    setFullHsl(singleRgbToHsl(rgbInterior), this);
+    setFullHsv(singleRgbToHsv(rgbInterior), this);
+    setFullYuv(singleRgbToYuv(rgbInterior), this);
 }
 
 function Yuv(yuvValue) {
@@ -869,8 +888,12 @@ Yuv.prototype.init = function(yuvValue) {
     // yuv 因为不常用现在只支持 yuv 三个数值都是 0-255 的类似 rgb 的规范
     // Y ranges from 0 to 1 (or 0 to 255 in digital formats), while U and V range from -0.5 to 0.5 (or -128 to 127 in signed digital form, or 0 to 255 in unsigned form).
     // via: http://softpixel.com/~cwright/programming/colorspace/yuv/
-    var parsedYuv = parseRgb(yuvValue);
-    this.colorValue.yuvFull = parsedYuv;
+    var yuvInterior = setFullYuv(yuvValue, this);
+    var rgbInterior = setFullRgb(singleYuvToRgb(yuvInterior), this);
+    setFullHex(singleRgbToHex(rgbInterior), this);
+    setFullHsl(singleRgbToHsl(rgbInterior), this);
+    setFullHsv(singleRgbToHsv(rgbInterior), this);
+    setFullCmyk(singleRgbToCmyk(rgbInterior), this);
 }
 
 function setFullHex(hexValue, context) {
