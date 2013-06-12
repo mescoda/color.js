@@ -937,8 +937,8 @@ Color.sort = function(array, type, reverse) {
     var sortType,
         isReverse;
     switch(type) {
-        case 'hexNum':
-            sortType = 'hexNum';
+        case 'hexInt':
+            sortType = 'hexInt';
             break;
         case 'hex':
             sortType = 'hex';
@@ -975,7 +975,7 @@ Color.sort = function(array, type, reverse) {
             sortType = 'value';
             break;
         default:
-            sortType = 'hexNum';
+            sortType = 'hexInt';
     }
     isReverse = reverse || false;
     for(var i = 0, iLen = array.length; i < iLen; i++) {
@@ -984,7 +984,7 @@ Color.sort = function(array, type, reverse) {
             var currentColorValue = array[i].colorValue,
                 currentSortValue = array[i].sortValue;
             currentSortValue.hex = currentColorValue.hexFull.sixWithoutPoundSign;
-            currentSortValue.hexNum = parseInt(currentColorValue.hexFull.sixWithoutPoundSign, 16);
+            currentSortValue.hexInt = parseInt(currentColorValue.hexFull.sixWithoutPoundSign, 16);
             currentSortValue.red = currentColorValue.rgb[0];
             currentSortValue.green = currentColorValue.rgb[1];
             currentSortValue.blue = currentColorValue.rgb[2];

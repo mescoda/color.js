@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>color.convert - test</title>
+    <title>color - test</title>
     <style>
         .box {
             width: 100px;
@@ -113,7 +113,7 @@
                 if(Object.prototype.toString.call(target[i]) === '[object Object]') {
                     continue;
                 }
-                console.log(i + ': ' + target[i]);
+                window.console && console.log(i + ': ' + target[i]);
             }
         }
         print(cmyk.colorValue);
