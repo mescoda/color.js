@@ -974,6 +974,22 @@ Color.sort = function(array, type, reverse) {
         case 'v':
             sortType = 'value';
             break;
+        case 'c':
+        case 'cyan':
+            sortType = 'cyan';
+            break;
+        case 'm':
+        case 'magenta':
+            sortType = 'magenta';
+            break;
+        case 'y':
+        case 'yellow':
+            sortType = 'yellow';
+            break;
+        case 'k':
+        case 'black':
+            sortType = 'black';
+            break;
         default:
             sortType = 'hexInt';
     }
@@ -993,6 +1009,10 @@ Color.sort = function(array, type, reverse) {
             currentSortValue.luminance = currentColorValue.hsl[2];
             currentSortValue.hsvSaturation = currentColorValue.hsv[1];
             currentSortValue.value = currentColorValue.hsv[2];
+            currentSortValue.cyan = currentColorValue.cmyk[0];
+            currentSortValue.magenta = currentColorValue.cmyk[1];
+            currentSortValue.yellow = currentColorValue.cmyk[2];
+            currentSortValue.black = currentColorValue.cmyk[3];
         }
     }
     
