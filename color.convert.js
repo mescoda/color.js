@@ -933,17 +933,87 @@ function setFullYuv(yuvValue, context) {
 }
 
 
+Color.sort = function(array, type, reverse) {
+    var sortType,
+        isReverse;
+    switch(type) {
+        case 'hexNum':
+            sortType = 'hexNum';
+            break;
+        case 'hex':
+            sortType = 'hex';
+            break;
+        case 'red':
+        case 'r':
+            sortType = 'red';
+            break;
+        case 'green':
+        case 'g':
+            sortType = 'green';
+            break;
+        case 'blue':
+        case 'b':
+            sortType = 'blue';
+            break;
+        case 'hue':
+        case 'h':
+            sortType = 'hue';
+            break;
+        case 'hslSaturation':
+        case 's':
+            sortType = 'hslSaturation';
+            break;
+        case 'luminance':
+        case 'l':
+            sortType = 'luminance';
+            break;
+        case 'hsvSaturation':
+            sortType = 'hsvSaturation';
+            break;
+        case 'value':
+        case 'v':
+            sortType = 'value';
+            break;
+        default:
+            sortType = 'hexNum';
+    }
+    isReverse = reverse || false;
+    for(var i = 0, iLen = array.length; i < iLen; i++) {
+        if(array[i] instanceof Color) {
+            array[i].sortValue = {};
+            var currentColorValue = array[i].colorValue,
+                currentSortValue = array[i].sortValue;
+            currentSortValue.hex = currentColorValue.hexFull.sixWithoutPoundSign;
+            currentSortValue.hexNum = parseInt(currentColorValue.hexFull.sixWithoutPoundSign, 16);
+            currentSortValue.red = currentColorValue.rgb[0];
+            currentSortValue.green = currentColorValue.rgb[1];
+            currentSortValue.blue = currentColorValue.rgb[2];
+            currentSortValue.hue = currentColorValue.hsl[0];
+            currentSortValue.hslSaturation = currentColorValue.hsl[1];
+            currentSortValue.luminance = currentColorValue.hsl[2];
+            currentSortValue.hsvSaturation = currentColorValue.hsv[1];
+            currentSortValue.value = currentColorValue.hsv[2];
+        }
+    }
+    
+    var inputArray = array.slice(),
+        sortedArray,
+        compareColor = (function() {
+            if(isReverse) {
+                return function(a, b) {
+                    return a.sortValue[sortType] - b.sortValue[sortType];
+                }
+            } else {
+                return function(a, b) {
+                    return -(a.sortValue[sortType] - b.sortValue[sortType]);
+                }
+            }
+        })();
+
+    sortedArray = inputArray.sort(compareColor);
+    return sortedArray;
+};
+
 window.Color = Color;
 
 })();
-
-// EXAMPLE
-
-/*
-
-// 通过一个类似 ColorLadderLib-master 的映射
-
-// array
-var a = [new Color(), new Color(), new Color()];
-
-*/

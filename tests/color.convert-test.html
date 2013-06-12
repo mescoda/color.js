@@ -10,13 +10,33 @@
             /*background-color: hsl(0,90.9898989%,70.8%);*/
             background-color: hsla(0,90%,70.8%,0.5);
         }
+        .demo {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            float: left;
+        }
+        #ori, #new, #new2 {
+            overflow: hidden;
+            *zoom: 1;
+            margin-bottom: 30px;
+        }
+        h2 {
+            margin: 0;
+            padding: 0;
+            font-family: Helvetica, Arial, sans-serif;
+        }
     </style>
 </head>
 <body>
-    <div class="box"></div>
-    <script>
-        // document.querySelector('.box').style.backgroundColor = 'hsl(200,70%,70%)';
-    </script>
+    <div id="ori">
+        <h2>ori</h2>
+    </div>
+    <div id="new">
+        <h2>new</h2>
+    </div>
+    <div id="new2"></div>
+    <!-- <div class="box"></div> -->
     <script src="../color.convert.js"></script>
     <script>
 
@@ -99,15 +119,40 @@
         print(cmyk.colorValue);
         print(yuv.colorValue);
 
-        var a = [new Color('red'), new Color('yellow')],
-            aRgb = [];
+        var a = [new Color('red'), new Color('ddd'), new Color([123,124,125]), new Color('hsl', '13,22%,24%'), new Color('hsv', 200,0.7,0.5), new Color('cmyk', '0.94 0.18 0 0.9'), new Color('yuv', 159,115,71)],
+            aRgb = [],
+            aHex = [];
         for(var i = 0, iLen = a.length; i < iLen; i++) {
             aRgb.push(a[i].toRgb());
+            aHex.push(a[i].toHex());
         }
-        console.log(aRgb);
         print(aRgb);
+        print(aHex);
 
+        for(var j = 0, jLen = aHex.length; j < jLen; j++) {
+            var temp = document.createElement('div');
+            temp.style.backgroundColor = aHex[j];
+            temp.className = 'demo';
+            document.getElementById('ori').appendChild(temp);
+        }
 
+        /*var testColor = new HexArray(aHex);
+        sortedTestColor = testColor.sortColorArray('l');
+        for(var k = 0, kLen = sortedTestColor.length; k < kLen; k++) {
+            var temp = document.createElement('div');
+            temp.style.backgroundColor = sortedTestColor[k];
+            temp.className = 'demo';
+            document.getElementById('new').appendChild(temp);
+        }*/
+
+        var s = Color.sort(a, 'l');
+        for(var k = 0, kLen = s.length; k < kLen; k++) {
+            var temp = document.createElement('div');
+            temp.style.backgroundColor = s[k].colorValue.hex;
+            temp.className = 'demo';
+            document.getElementById('new').appendChild(temp);
+        }
+        
     </script>
 </body>
 </html>
