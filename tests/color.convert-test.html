@@ -81,12 +81,32 @@
         var cmyk = new Color('cmyk', '0.94,0.18,0,0.9');
         var cmyk = new Color('cmyk', 0.94,0.18,0,0.9);
         var cmyk = new Color('cmyk', '0.94 0.18 0 0.9');
-        // var cmyk = new Color('cmyk', [0.94,0.18,0,0.9]);
+        var cmyk = new Color('cmyk', [0.94,0.18,0,0.9]);
         // var cmyk = new Color('cmyk', '94%,18%,0,9%');
 
         var yuv = new Color('yuv', '132,61,85');
         var yuv = new Color('yuv', [132,61,85]);
         var yuv = new Color('yuv', '132 61 85');
+
+        function print(target) {
+            for(var i in target) {
+                if(Object.prototype.toString.call(target[i]) === '[object Object]') {
+                    continue;
+                }
+                console.log(i + ': ' + target[i]);
+            }
+        }
+        print(cmyk.colorValue);
+        print(yuv.colorValue);
+
+        var a = [new Color('red'), new Color('yellow')],
+            aRgb = [];
+        for(var i = 0, iLen = a.length; i < iLen; i++) {
+            aRgb.push(a[i].toRgb());
+        }
+        console.log(aRgb);
+        print(aRgb);
+
 
     </script>
 </body>
