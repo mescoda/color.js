@@ -180,11 +180,13 @@ for(var i in w3cColors) {
 var colorRegex = {
     hex: /^#?([\da-f]{3}){1,2}$/i,
     rgb: /^(2[0-4]\d(?:\.\d+)?|25[0-4](?:\.\d+)?|255|[1]?\d?\d(?:\.\d+)?)([,\s]|,\s)(2[0-4]\d(?:\.\d+)?|25[0-4](?:\.\d+)?|255|[1]?\d?\d(?:\.\d+)?)\2(2[0-4]\d(?:\.\d+)?|25[0-4](?:\.\d+)?|255|[1]?\d?\d(?:\.\d+)?)$/,
-    rgba: /^(2[0-4]\d|25[0-5]|[1]?\d?\d)([,\s]|,\s)(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(1|0\.\d|0)$/,
+    rgba: /^(2[0-4]\d|25[0-5]|[1]?\d?\d)([,\s]|,\s)(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(2[0-4]\d|25[0-5]|[1]?\d?\d)\2(1|0\.\d+|0)$/,
     hsl: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)\2(100|\d?\d)$/,
     hslPercent: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)%?\2(100|\d?\d)%?$/,
     hslDecimal: /^(3[0-5]\d(?:\.\d+)?|360|[12]?\d?\d(?:\.\d+)?)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)$/,
-    hsla: /^$/,
+    hsla: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)\2(100|\d?\d)(1|0\.\d+|0)$/,
+    hslaPercent: /^(3[0-5]\d|360|[12]?\d?\d)([,\s]|,\s)(100|\d?\d)%?\2(100|\d?\d)%?\2(1|0\.\d+|0)$/,
+    hslaDecimal: /^(3[0-5]\d(?:\.\d+)?|360|[12]?\d?\d(?:\.\d+)?)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)\2(1|0\.\d+|0)$/,
     cmykPercent: /^(100|\d?\d)%?([,\s]|,\s)(100|\d?\d)%?\2(100|\d?\d)%?\2(100|\d?\d)%?$/,
     cmykDecimal: /^(1|0\.\d+|0)([,\s]|,\s)(1|0\.\d+|0)\2(1|0\.\d+|0)\2(1|0\.\d+|0)$/,
     // yuv: 0-255 0-255 0-255, same as Rgb
@@ -369,6 +371,86 @@ function parseHsx(type, hslValue) {
         delete(hsl.array);
     }
     return hsl;
+}
+
+function parseHsxa(type, hslaValue) {
+    // parseHsla & parseHsv
+    var hsla = {};
+    if(isArray(hslaValue)) {
+        hslaValue = hslaValue.join();   
+    }
+    if(colorRegex.hslaPercent.test(hslaValue)) {
+        // 200 90 90 0.5 类型的百分比整数 string
+        hslaValue = hslaValue.replace(/%/g, '');
+        hsla = parseArrayString('hslaPercent', arguments.callee, hslaValue);
+        if(hsla.string && hsla.string.length > 0) {
+            hsla.percentArray = hsla.array.slice();
+            hsla.decimalArray = [];
+            hsla.percentArrayWithSign = [];
+            hsla.percentIntegerArray = [];
+            hsla.percentIntegerWithSignArray = [];
+            for(var i = 0, iLen = hsla.array.length; i < iLen; i++) {
+                if(i === 0) {
+                    hsla.decimalArray.push(+hsla.array[i]);
+                    hsla.percentArrayWithSign.push(hsla.array[i] + '');
+                    hsla.percentIntegerArray.push(Math.round(hsla.array[i]));
+                    hsla.percentIntegerWithSignArray.push(Math.round(hsla.array[i]) + '');
+                } else if(i === iLen - 1) {
+                    hsla.decimalArray.push(+hsla.array[i]);
+                    hsla.percentArrayWithSign.push(hsla.array[i] + '');
+                    hsla.percentIntegerArray.push(hsla.array[i]);
+                    hsla.percentIntegerWithSignArray.push(hsla.array[i] + '');
+                } else {
+                    hsla.decimalArray.push(hsla.array[i] / 100);
+                    hsla.percentArrayWithSign.push(hsla.array[i] + '%');
+                    hsla.percentIntegerArray.push(Math.round(hsla.array[i]));
+                    hsla.percentIntegerWithSignArray.push(Math.round(hsla.array[i]) + '%');
+                }
+            }
+        }
+    } else if(colorRegex.hslaDecimal.test(hslaValue)) {
+        // 200 0.9 0.9 0.5 类型的小数 string
+        hsla = parseArrayString('hslaDecimal', arguments.callee, hslaValue);
+        if(hsla.string && hsla.string.length > 0) {
+            hsla.decimalArray = hsla.array.slice();
+            hsla.percentArray = [];
+            hsla.percentArrayWithSign = [];
+            hsla.percentIntegerArray = [];
+            hsla.percentIntegerWithSignArray = [];
+            for(var j = 0, jLen = hsla.array.length; j < jLen; j++) {
+                if(j === 0) {
+                    hsla.percentArray.push(+hsla.array[j]);
+                    hsla.percentArrayWithSign.push(hsla.array[j] + '');
+                    hsla.percentIntegerArray.push(Math.round(hsla.array[j]));
+                    hsla.percentIntegerWithSignArray.push(Math.round(hsla.array[j]) + '');
+                } else if(j === jLen - 1) {
+                    hsla.percentArray.push(+hsla.array[j]);
+                    hsla.percentArrayWithSign.push(hsla.array[j] + '');
+                    hsla.percentIntegerArray.push(hsla.array[j]);
+                    hsla.percentIntegerWithSignArray.push(hsla.array[j] + '');
+                }  else {
+                    hsla.percentArray.push(hsla.array[j] * 100);
+                    hsla.percentArrayWithSign.push(hsla.array[j] * 100 + '%');
+                    hsla.percentIntegerArray.push(Math.round(hsla.array[j] * 100));
+                    hsla.percentIntegerWithSignArray.push(Math.round(hsla.array[j] * 100) + '%');
+                }
+            }
+            
+        }
+    }
+    if(hsla.percentArray) {
+        hsla.percentString = hsla.percentArray.join();
+        hsla.decimalString = hsla.decimalArray.join();
+        hsla.percentStringWithSign = hsla.percentArrayWithSign.join();
+        hsla.percentIntegerString = hsla.percentIntegerArray.join();
+        hsla.percentIntegerWithSignString = hsla.percentIntegerWithSignArray.join();
+        if(type === 'hsla') {
+            hsla.cssString = 'hsla(' + hsla.percentIntegerWithSignArray.join() + ')';
+        }
+        delete(hsla.string);
+        delete(hsla.array);
+    }
+    return hsla;
 }
 
 function parseCmyk(cmykValue) {
@@ -695,6 +777,9 @@ function Color(type, value) {
             case 'hsl':
                 return new Hsl(value);
                 break;
+            case 'hsla':
+                return new Hsla(value);
+                break;
             case 'hsv':
                 return new Hsv(value);
                 break;
@@ -743,6 +828,9 @@ function Color(type, value) {
             case 'hsl':
                 return new Hsl(Array.prototype.slice.call(arguments, 1));
                 break;
+            case 'hsla':
+                return new Hsla(Array.prototype.slice.call(arguments, 1));
+                break;
             case 'hsv':
                 return new Hsv(Array.prototype.slice.call(arguments, 1));
                 break;
@@ -786,8 +874,14 @@ Hex.prototype = new Color();
 Hex.prototype.constructor = Hex;
 Hex.prototype.init = function(hexValue) {
     var hexInterior = setFullHex(hexValue, this),
-        rgbInterior = setFullRgb(singleHexToRgb(hexInterior), this);
-    setFullHsl(singleRgbToHsl(rgbInterior), this);
+        rgbInterior = setFullRgb(singleHexToRgb(hexInterior), this),
+        rgbaInterior = rgbInterior.slice();
+    rgbaInterior.push(1);
+    setFullRgba(rgbaInterior, this);
+    var hslInterior = setFullHsl(singleRgbToHsl(rgbInterior), this),
+        hslaInterior = hslInterior.slice();
+    hslaInterior.push(1);
+    setFullHsla(hslaInterior, this);
     setFullHsv(singleRgbToHsv(rgbInterior), this);
     setFullCmyk(singleRgbToCmyk(rgbInterior), this);
     setFullYuv(singleRgbToYuv(rgbInterior), this);
@@ -801,9 +895,15 @@ function Rgb(rgbValue) {
 Rgb.prototype = new Color();
 Rgb.prototype.constructor = Rgb;
 Rgb.prototype.init = function(rgbValue) {
-    var rgbInterior = setFullRgb(rgbValue, this);
+    var rgbInterior = setFullRgb(rgbValue, this),
+        rgbaInterior = rgbInterior.slice();
+    rgbaInterior.push(1);
+    setFullRgba(rgbaInterior, this);
     setFullHex(singleRgbToHex(rgbInterior), this);
-    setFullHsl(singleRgbToHsl(rgbInterior), this);
+    var hslInterior = setFullHsl(singleRgbToHsl(rgbInterior), this),
+        hslaInterior = hslInterior.slice();
+    hslaInterior.push(1);
+    setFullHsla(hslaInterior, this);
     setFullHsv(singleRgbToHsv(rgbInterior), this);
     setFullCmyk(singleRgbToCmyk(rgbInterior), this);
     setFullYuv(singleRgbToYuv(rgbInterior), this);
@@ -817,9 +917,18 @@ function Rgba(rgbaValue) {
 Rgba.prototype = new Color();
 Rgba.prototype.constructor = Rgba;
 Rgba.prototype.init = function(rgbaValue) {
-    var parsedRgba = parseRgba(rgbaValue);
-    this.colorValue.rgbaFull = parsedRgba;
-    this.colorValue.rgba = parsedRgba.array || [];
+    var rgbaInterior = setFullRgba(rgbaValue, this),
+        rgbInterior = rgbaInterior.slice(0, rgbaInterior.length - 1),
+        alpha = +rgbaInterior.slice(rgbaInterior.length - 1).join();
+    setFullRgb(rgbInterior, this);
+    setFullHex(singleRgbToHex(rgbInterior), this);
+    var hslInterior = setFullHsl(singleRgbToHsl(rgbInterior), this),
+        hslaInterior = hslInterior.slice(0);
+    hslaInterior.push(alpha);
+    setFullHsla(hslaInterior, this);
+    setFullHsv(singleRgbToHsv(rgbInterior), this);
+    setFullCmyk(singleRgbToCmyk(rgbInterior), this);
+    setFullYuv(singleRgbToYuv(rgbInterior), this);
 };
 
 function Hsl(hslValue) {
@@ -831,8 +940,36 @@ Hsl.prototype = new Color();
 Hsl.prototype.constructor = Hsl;
 Hsl.prototype.init = function(hslValue) {
     var hslInterior = setFullHsl(hslValue, this),
-        rgbInterior = setFullRgb(singleHslToRgb(hslInterior), this);
+        rgbInterior = setFullRgb(singleHslToRgb(hslInterior), this),
+        hslaInterior = hslInterior.slice();
+    hslaInterior.push(1);
+    setFullHsla(hslaInterior, this);
+    var rgbaInterior = rgbInterior.slice();
+    rgbaInterior.push(1);
+    setFullRgba(rgbaInterior, this);
     setFullHex(singleRgbToHex(rgbInterior), this);
+    setFullHsv(singleRgbToHsv(rgbInterior), this);
+    setFullCmyk(singleRgbToCmyk(rgbInterior), this);
+    setFullYuv(singleRgbToYuv(rgbInterior), this);
+}
+
+function Hsla(hslaValue) {
+    this.colorValue = {};
+    this.type = 'hsla';
+    this.init(hslaValue);
+}
+Hsla.prototype = new Color();
+Hsla.prototype.constructor = Hsla;
+Hsla.prototype.init = function(hslaValue) {
+    var hslaInterior = setFullHsla(hslaValue, this),
+        hslInterior = hslaInterior.slice(0, hslaInterior.length - 1),
+        alpha = +hslaInterior.slice(hslaInterior.length - 1).join(),
+        rgbInterior = setFullRgb(singleHslToRgb(hslInterior), this),
+        rgbaInterior = rgbInterior.slice();
+    rgbaInterior.push(alpha);
+    setFullRgba(rgbaInterior, this);
+    setFullHex(singleRgbToHex(rgbInterior), this);
+    setFullHsl(singleRgbToHsl(rgbInterior), this);
     setFullHsv(singleRgbToHsv(rgbInterior), this);
     setFullCmyk(singleRgbToCmyk(rgbInterior), this);
     setFullYuv(singleRgbToYuv(rgbInterior), this);
@@ -847,9 +984,15 @@ Hsv.prototype = new Color();
 Hsv.prototype.constructor = Hsv;
 Hsv.prototype.init = function(hsvValue) {
     var hsvInterior = setFullHsv(hsvValue, this),
-        rgbInterior = setFullRgb(singleHsvToRgb(hsvInterior), this);
+        rgbInterior = setFullRgb(singleHsvToRgb(hsvInterior), this),
+        rgbaInterior = rgbInterior.slice();
+    rgbaInterior.push(1);
+    setFullRgba(rgbaInterior, this);
     setFullHex(singleRgbToHex(rgbInterior), this);
-    setFullHsl(singleRgbToHsl(rgbInterior), this);
+    var hslInterior = setFullHsl(singleRgbToHsl(rgbInterior), this),
+        hslaInterior = hslInterior.slice();
+    hslaInterior.push(1);
+    setFullHsla(hslaInterior, this);
     setFullCmyk(singleRgbToCmyk(rgbInterior), this);
     setFullYuv(singleRgbToYuv(rgbInterior), this);
 }
@@ -863,9 +1006,15 @@ Cmyk.prototype = new Color();
 Cmyk.prototype.constructor = Cmyk;
 Cmyk.prototype.init = function(cmykValue) {
     var cmykInterior = setFullCmyk(cmykValue, this),
-        rgbInterior = setFullRgb(singleCmykToRgb(cmykInterior), this);
+        rgbInterior = setFullRgb(singleCmykToRgb(cmykInterior), this),
+        rgbaInterior = rgbInterior.slice();
+    rgbaInterior.push(1);
+    setFullRgba(rgbaInterior, this);
     setFullHex(singleRgbToHex(rgbInterior), this);
-    setFullHsl(singleRgbToHsl(rgbInterior), this);
+    var hslInterior = setFullHsl(singleRgbToHsl(rgbInterior), this),
+        hslaInterior = hslInterior.slice();
+    hslaInterior.push(1);
+    setFullHsla(hslaInterior, this);
     setFullHsv(singleRgbToHsv(rgbInterior), this);
     setFullYuv(singleRgbToYuv(rgbInterior), this);
 }
@@ -882,9 +1031,15 @@ Yuv.prototype.init = function(yuvValue) {
     // Y ranges from 0 to 1 (or 0 to 255 in digital formats), while U and V range from -0.5 to 0.5 (or -128 to 127 in signed digital form, or 0 to 255 in unsigned form).
     // via: http://softpixel.com/~cwright/programming/colorspace/yuv/
     var yuvInterior = setFullYuv(yuvValue, this),
-        rgbInterior = setFullRgb(singleYuvToRgb(yuvInterior), this);
+        rgbInterior = setFullRgb(singleYuvToRgb(yuvInterior), this),
+        rgbaInterior = rgbInterior.slice();
+    rgbaInterior.push(1);
+    setFullRgba(rgbaInterior, this);
     setFullHex(singleRgbToHex(rgbInterior), this);
-    setFullHsl(singleRgbToHsl(rgbInterior), this);
+    var hslInterior = setFullHsl(singleRgbToHsl(rgbInterior), this),
+        hslaInterior = hslInterior.slice();
+    hslaInterior.push(1);
+    setFullHsla(hslaInterior, this);
     setFullHsv(singleRgbToHsv(rgbInterior), this);
     setFullCmyk(singleRgbToCmyk(rgbInterior), this);
 }
@@ -904,11 +1059,25 @@ function setFullRgb(rgbValue, context) {
     return parsedRgb.integerArray;
 }
 
+function setFullRgba(rgbaValue, context) {
+    var parsedRgba = parseRgba(rgbaValue);
+    context.colorValue.rgbaFull = parsedRgba;
+    context.colorValue.rgba = parsedRgba.array;
+    return parsedRgba.integerArray;
+}
+
 function setFullHsl(hslValue, context) {
     var parsedHsl = parseHsx('hsl', hslValue);
     context.colorValue.hslFull = parsedHsl;
     context.colorValue.hsl = parsedHsl.percentIntegerArray;
     return parsedHsl.decimalArray;
+}
+
+function setFullHsla(hslaValue, context) {
+    var parsedHsla = parseHsxa('hsla', hslaValue);
+    context.colorValue.hslaFull = parsedHsla;
+    context.colorValue.hsla = parsedHsla.percentIntegerArray;
+    return parsedHsla.decimalArray;
 }
 
 function setFullHsv(hsvValue, context) {

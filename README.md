@@ -1,6 +1,6 @@
 # color.js
 
-Convert and sort colors in w3cColor HEX RGB HSL HSV CMYK YUV type
+Convert and sort colors in w3cColor HEX RGB RGBA HSL HSLA HSV CMYK YUV type
 
 ## Browser support
 
@@ -38,6 +38,20 @@ var rgb = new Color('rgb', '131 191 115');
 var rgb = new Color('rgb', 131, 191, 115);
 ```
 
+### RGBA
+
+```js
+var rgba = new Color([131, 191, 115, 0.5]);
+var rgba = new Color('131, 191, 115, 0.5');
+var rgba = new Color('131 191 115 0.5');
+
+var rgba = new Color('rgba', [131, 191, 115, 0.5]);
+var rgba = new Color('rgba', '131, 191, 115, 0.5');
+var rgba = new Color('rgba', '131 191 115 0.5');
+var rgba = new Color('rgba', 131, 191, 115, 0.5);
+```
+
+
 ### HSL/HSV
 
 ```js
@@ -56,6 +70,26 @@ var hsl = new Color('hsl', '107 0.37 0.6');
 var hsl = new Color('hsl', 107, 37, 60);
 var hsl = new Color('hsl', 107, '37%', '60%');
 var hsl = new Color('hsl', 107, 0.37, 0.6);
+```
+
+### HSLA
+
+```js
+var hsla = new Color('hsla', [107, 37, 60, 0.5]);
+var hsla = new Color('hsla', [107, '37%', '60%', 0.5]);
+var hsla = new Color('hsla', [107, 0.37, 0.6, 0.5]);
+
+var hsla = new Color('hsla', '107,37,60,0.5');
+var hsla = new Color('hsla', '107,37%,60%,0.5');
+var hsla = new Color('hsla', '107,0.37,0.6,0.5');
+
+var hsla = new Color('hsla', '107 37 60 0.5');
+var hsla = new Color('hsla', '107 37% 60% 0.5');
+var hsla = new Color('hsla', '107 0.37 0.6 0.5');
+
+var hsla = new Color('hsla', 107, 37, 60, 0.5);
+var hsla = new Color('hsla', 107, '37%', '60%', 0.5);
+var hsla = new Color('hsla', 107, 0.37, 0.6, 0.5);
 ```
 
 ### CMYK
