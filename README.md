@@ -138,6 +138,10 @@ var yuv = new Color('yuv', 164, 100, 103);
 * yellow(y) in CMYK
 * black(b) in CMYK
 
+## Output format
+
+check it yourself
+
 ## Example
 
 test/color.test.html
