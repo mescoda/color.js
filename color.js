@@ -1044,6 +1044,10 @@ Yuv.prototype.init = function(yuvValue) {
     setFullCmyk(singleRgbToCmyk(rgbInterior), this);
 }
 
+// setFull functions
+// 用于将一种单一的格式扩充为所有输出的格式
+// 返回中转格式
+
 function setFullHex(hexValue, context) {
     var parsedHex = parseHex(hexValue);
     context.colorValue.hexFull = parsedHex;
@@ -1143,6 +1147,10 @@ Color.sort = function(array, type, reverse) {
         case 'v':
             sortType = 'value';
             break;
+        case 'intensity':
+        case 'i':
+            sortType = 'intensity';
+            break;
         case 'c':
         case 'cyan':
             sortType = 'cyan';
@@ -1178,6 +1186,7 @@ Color.sort = function(array, type, reverse) {
             currentSortValue.luminance = currentColorValue.hsl[2];
             currentSortValue.hsvSaturation = currentColorValue.hsv[1];
             currentSortValue.value = currentColorValue.hsv[2];
+            currentSortValue.intensity = (currentColorValue.rgb[0] + currentColorValue.rgb[1] + currentColorValue.rgb[2]) / 3;
             currentSortValue.cyan = currentColorValue.cmyk[0];
             currentSortValue.magenta = currentColorValue.cmyk[1];
             currentSortValue.yellow = currentColorValue.cmyk[2];
