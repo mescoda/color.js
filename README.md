@@ -133,6 +133,7 @@ var yuv = new Color('yuv', 164, 100, 103);
 * luminance(l) in HSL
 * hsvSaturation in HSV
 * value(v) in HSV
+* i(intensity) in HSI
 * cyan(c) in CMYK
 * magenta(m) in CMYK
 * yellow(y) in CMYK
