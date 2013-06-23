@@ -137,7 +137,7 @@ var yuv = new Color('yuv', 164, 100, 103);
 * cyan(c) in CMYK
 * magenta(m) in CMYK
 * yellow(y) in CMYK
-* black(b) in CMYK
+* black(k) in CMYK
 
 ## Output format
 
